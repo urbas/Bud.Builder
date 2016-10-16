@@ -33,7 +33,7 @@ If you run the above program, you will get output similar to this:
 ```
 $ Program.exe
 [1/1| 21:32:45.123] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
-[1/1| 21:32:45.147] Running: ./.bud/packages/Microsoft.TypeScript.Compiler.2.0.3/tools/tsc.exe --outDir build/js src/main.ts
+[1/1| 21:32:45.147] Running: tsc.exe --outDir build/js src/main.ts
 [1/1| 21:32:45.239] out> Typescript output...
 [1/1| 21:32:46.033] out> Typescript output...
 [1/1| 21:32:55.762] out> Typescript output...
@@ -46,7 +46,7 @@ $ Program.exe
 $ rm -Rf build
 $ Program.exe
 [1/1| 21:32:45.123] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
-[1/1| 21:32:45.147] Running: ./.bud/packages/Microsoft.TypeScript.Compiler.2.0.3/tools/tsc.exe --outDir build/js src/main.ts
+[1/1| 21:32:45.147] Running: tsc.exe --outDir build/js src/main.ts
 [1/1| 21:32:45.239] err> Typescript error output...
 [1/1| 21:32:46.033] exit-code> 7
 [1/1| 21:32:55.762] Failed.
