@@ -8,7 +8,7 @@
     <owners>Matej Urbas</owners>
     <licenseUrl>https://github.com/urbas/Bud.Building/blob/master/LICENCE.md</licenseUrl>
     <projectUrl>https://github.com/urbas/Bud.Building</projectUrl>
-    <iconUrl></iconUrl>
+    <iconUrl>https://ci.appveyor.com/api/projects/status/6u8p65sqh4hka0bk/branch/master</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Bud.Building is a library for defining and executing builds.</description>
     <releaseNotes>
