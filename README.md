@@ -9,6 +9,43 @@ __Table of contents__
 
 Bud.Building is a library for defining and executing builds.
 
+
+# Overview
+
+The library consists of two main parts:
+
+- __Build Definition API__: classes that make up the build graph.
+
+- __Build Execution API__: engines that execute the build graph.
+
+
+## Build Definition API
+
+
+### `IBuildTask` class
+
+The basic building block of the Build Definition API is the `IBuildTask` interface:
+
+```csharp
+public interface IBuildTask {
+  void Execute(IBuildContext ctx);
+  ImmutableArray<IBuildTask> Dependencies {get;};
+}
+```
+
+
+### `Bud.Building.Build` functions
+
+Call `Bud.Building.Build(...)` family of methods to create build tasks and combine them into graphs.
+
+
+### `Bud.Building.RunBuild` function
+
+This function takes a list of build tasks, executes them in parallel, and outputs progress to the given writer.
+
+The result of the function is an object that contains information about the build.
+
+
 # Example
 
 ```csharp
@@ -18,12 +55,13 @@ using static Bud.Building;
 
 class Program {
   static void Main(string[] args) {
-    var typeScript = Build(command:   ctx => ctx.Run("tsc.exe", $"--outDir {ctx.OutputDir} {Args(ctx.Sources)}"),
+    var typeScript = Build(command:   ctx => ctx.Command("tsc.exe", $"--outDir {ctx.OutputDir} {Args(ctx.Sources)}"),
                            sources:   "src/**/*.ts", 
                            outputDir: "build/js",
                            outputExt: ".js");
 
-    RunBuild(typeScript);
+    var buildResult = RunBuild(Console.Out, typeScript);
+    Environment.Exit(buildResult.IsSuccess ? 0 : 1);
   }
 }
 ```
@@ -32,24 +70,26 @@ If you run the above program, you will get output similar to this:
 
 ```
 $ Program.exe
-[1/1| 21:32:45.123] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
-[1/1| 21:32:45.147] Running: tsc.exe --outDir build/js src/main.ts
-[1/1| 21:32:45.239] out> Typescript output...
-[1/1| 21:32:46.033] out> Typescript output...
-[1/1| 21:32:55.762] out> Typescript output...
-[1/1| 21:33:12.486] out> Typescript output...
-[1/1| 21:51:26.007] Done building 'src/**/.*ts' -> 'build/js/**/*.js' in 00:18:40.884.
+[1/1       0s] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
+[1/1   0.147s] Running: tsc.exe --outDir build/js src/main.ts
+[1/1   0.239s] out> Typescript output...
+[1/1   1.033s] out> Typescript output...
+[1/1  10.762s] out> Typescript output...
+[1/1  27.486s] out> Typescript output...
+[1/1 120.007s] Done building 'src/**/.*ts' -> 'build/js/**/*.js'.
+Wall time: 1120.007s Total: 1120.007s Status: success
 
 $ Program.exe
 [1/1| 21:32:45.123] Skipping 'src/**/.*ts' -> 'build/js/**/*.js'. Up-to-date.
 
 $ rm -Rf build
 $ Program.exe
-[1/1| 21:32:45.123] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
-[1/1| 21:32:45.147] Running: tsc.exe --outDir build/js src/main.ts
-[1/1| 21:32:45.239] err> Typescript error output...
-[1/1| 21:32:46.033] exit-code> 7
-[1/1| 21:32:55.762] Failed.
+[1/1       0s] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
+[1/1   0.147s] Running: tsc.exe --outDir build/js src/main.ts
+[1/1   0.239s] err> Typescript error output...
+[1/1   1.033s] exit-code> 7
+[1/1   1.033s] Failed building 'src/**/.*ts' -> 'build/js/**/*.js'.
+Wall time: 1.033s Total: 1.033s Status: failure
 ```
 
 The process will exit with error code 0 if the build succeeds. Otherwise it will exit with error code 1.
