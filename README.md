@@ -41,9 +41,9 @@ Call `Bud.Building.Build(...)` family of methods to create build tasks and combi
 
 ### `Bud.Building.RunBuild` function
 
-This function takes a list of build tasks, executes them in parallel, and outputs progress to the given writer.
+This executes your build tasks in parallel and outputs progress to the standard output (or a text writer if you provide one).
 
-The result of the function is an object that contains information about the build.
+This function will throw an exception if the build fails.
 
 
 # Example
@@ -60,8 +60,7 @@ class Program {
                            outputDir: "build/js",
                            outputExt: ".js");
 
-    var buildResult = RunBuild(Console.Out, typeScript);
-    Environment.Exit(buildResult.IsSuccess ? 0 : 1);
+    RunBuild(typeScript);
   }
 }
 ```
@@ -70,7 +69,7 @@ If you run the above program, you will get output similar to this:
 
 ```
 $ Program.exe
-[1/1       0s] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
+[1/1   0.000s] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
 [1/1   0.147s] Running: tsc.exe --outDir build/js src/main.ts
 [1/1   0.239s] out> Typescript output...
 [1/1   1.033s] out> Typescript output...
@@ -84,7 +83,7 @@ $ Program.exe
 
 $ rm -Rf build
 $ Program.exe
-[1/1       0s] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
+[1/1   0.000s] Building 'src/**/.*ts' -> 'build/js/**/*.js'.
 [1/1   0.147s] Running: tsc.exe --outDir build/js src/main.ts
 [1/1   0.239s] err> Typescript error output...
 [1/1   1.033s] exit-code> 7
