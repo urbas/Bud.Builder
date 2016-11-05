@@ -31,7 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Bud.TaskGraph">
+      <HintPath>..\..\Bud.TaskGraph\Bud.TaskGraph\bin\Debug\Bud.TaskGraph.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Bud.TaskGraph\Bud.TaskGraph\bin\Debug\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,10 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildCommand.cs" />
-    <Compile Include="IBuildContext.cs" />
-    <Compile Include="Building.cs" />
+    <Compile Include="BuildAction.cs" />
     <Compile Include="BuildTask.cs" />
+    <Compile Include="BuildActionContext.cs" />
+    <Compile Include="Building.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
