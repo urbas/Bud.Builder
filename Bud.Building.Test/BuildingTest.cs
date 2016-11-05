@@ -41,8 +41,7 @@ namespace Bud {
       var buildOutputWriter = new StringWriter();
 
       RunBuild(buildOutputWriter,
-               Build(action: context => {}),
-               Build(action: context => {}));
+               Build(action: context => {}, dependsOn: new []{ Build(action: context => { }) }));
 
       Assert.That(buildOutputWriter.ToString(), Does.Contain("[1/2").And.Contains("[2/2"));
     }
