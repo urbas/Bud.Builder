@@ -55,23 +55,28 @@ namespace Bud {
       var thisTaskNumber = taskNumberAssigner.AssignNumber();
       return new TaskGraph(
         () => {
-          var buildStartMessage = string.IsNullOrEmpty(buildTask.Name) ? "Started building." : $"Started building '{buildTask.Name}'.";
-          WriteLogLine(stdout, taskNumberAssigner, buildStopwatch, thisTaskNumber, buildStartMessage);
+          LogBuildStart(stdout, buildTask, taskNumberAssigner, buildStopwatch, thisTaskNumber);
           buildTask.Action(new BuildActionContext());
-          var buildDoneMessage = string.IsNullOrEmpty(buildTask.Name) ? "Done building." : $"Done building '{buildTask.Name}'.";
-          WriteLogLine(stdout, taskNumberAssigner, buildStopwatch, thisTaskNumber, buildDoneMessage);
+          LogBuildEnd(stdout, buildTask, taskNumberAssigner, buildStopwatch, thisTaskNumber);
         },
         taskGraphs);
     }
 
-    private static void WriteLogLine(TextWriter stdout, TaskNumberAssigner taskNumberAssigner, Stopwatch buildStopwatch, int thisTaskNumber, string buildStartMessage) {
-      stdout.WriteLine("[{0}/{1} {2}s] {3}",
-                       thisTaskNumber, taskNumberAssigner.TotalTasks, GetTimestamp(buildStopwatch), buildStartMessage);
+    private static void LogBuildStart(TextWriter stdout, BuildTask buildTask, TaskNumberAssigner taskNumberAssigner, Stopwatch buildStopwatch, int thisTaskNumber) {
+      var buildStartMessage = string.IsNullOrEmpty(buildTask.Name) ? "Started building." : $"Started building '{buildTask.Name}'.";
+      WriteLogLine(stdout, thisTaskNumber, buildStopwatch, buildStartMessage, taskNumberAssigner.TotalTasks);
     }
 
-    private static string GetTimestamp(Stopwatch buildStopwatch) {
-      return ((double) buildStopwatch.ElapsedMilliseconds/1000).ToString("F3").PadLeft(ReservedTimeStringLength);
+    private static void LogBuildEnd(TextWriter stdout, BuildTask buildTask, TaskNumberAssigner taskNumberAssigner, Stopwatch buildStopwatch, int thisTaskNumber) {
+      var buildDoneMessage = string.IsNullOrEmpty(buildTask.Name) ? "Done building." : $"Done building '{buildTask.Name}'.";
+      WriteLogLine(stdout, thisTaskNumber, buildStopwatch, buildDoneMessage, taskNumberAssigner.TotalTasks);
     }
+
+    private static void WriteLogLine(TextWriter logWriter, int taskNumber, Stopwatch stopwatch, string msg, int totalTasks)
+      => logWriter.WriteLine("[{0}/{1} {2}s] {3}", taskNumber, totalTasks, GetTimestamp(stopwatch), msg);
+
+    private static string GetTimestamp(Stopwatch buildStopwatch)
+      => ((double) buildStopwatch.ElapsedMilliseconds/1000).ToString("F3").PadLeft(ReservedTimeStringLength);
   }
 
   internal class TaskNumberAssigner {
