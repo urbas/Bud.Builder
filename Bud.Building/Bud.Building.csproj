@@ -51,8 +51,9 @@
   <ItemGroup>
     <Compile Include="BuildAction.cs" />
     <Compile Include="BuildActionTask.cs" />
-    <Compile Include="BuildActionContext.cs" />
+    <Compile Include="BuildContext.cs" />
     <Compile Include="Building.cs" />
+    <Compile Include="IBuildTask.cs" />
     <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

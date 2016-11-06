@@ -72,7 +72,7 @@ The basic building block of the Build Definition API is the `IBuildTask` interfa
 
 ```csharp
 public interface IBuildTask {
-  void Execute(IBuildContext ctx);
+  void Execute(BuildContext ctx);
   ImmutableArray<IBuildTask> Dependencies {get;};
 }
 ```

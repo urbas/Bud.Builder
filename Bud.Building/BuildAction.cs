@@ -6,5 +6,5 @@
   ///   This object contains information such as sources to build and output target paths.
   ///   In addition, this object provides logging support, process execution helper methods, etc.
   /// </param>
-  public delegate void BuildAction(BuildActionContext ctx);
+  public delegate void BuildAction(BuildContext ctx);
 }

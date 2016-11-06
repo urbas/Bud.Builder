@@ -43,14 +43,14 @@ namespace Bud {
     /// <returns>the build task object.</returns>
     public static BuildActionTask Build(BuildAction action,
                                         string name = null,
-                                        IEnumerable<BuildActionTask> dependsOn = null)
+                                        IEnumerable<IBuildTask> dependsOn = null)
       => new BuildActionTask(action, name, dependsOn);
 
-    private static int CountTasks(IReadOnlyCollection<BuildActionTask> buildTasks)
+    private static int CountTasks(IReadOnlyCollection<IBuildTask> buildTasks)
       => buildTasks.Count + buildTasks.Select(task => CountTasks(task.Dependencies)).Sum();
 
     private static TaskGraph ToTaskGraph(TextWriter stdout,
-                                         BuildActionTask buildTask,
+                                         IBuildTask buildTask,
                                          TaskNumberAssigner taskNumberAssigner,
                                          Stopwatch buildStopwatch) {
       var taskGraphs = buildTask.Dependencies
@@ -61,7 +61,7 @@ namespace Bud {
                                 .ToImmutableArray();
       var thisTaskNumber = taskNumberAssigner.AssignNumber();
       return new TaskGraph(
-        () => buildTask.Invoke(stdout, buildStopwatch, thisTaskNumber, taskNumberAssigner.TotalTasks),
+        () => buildTask.Execute(new BuildContext(stdout, buildStopwatch, thisTaskNumber, taskNumberAssigner.TotalTasks)),
         taskGraphs);
     }
   }
