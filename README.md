@@ -70,7 +70,7 @@ The library consists of two main parts:
 ## Build Definition API
 
 
-### `IBuildTask` class
+### The `IBuildTask` class
 
 The basic building block of the Build Definition API is the `IBuildTask` interface:
 
@@ -87,7 +87,10 @@ public interface IBuildTask {
 Call `Bud.Building.Build(...)` family of methods to create build tasks and combine them into graphs.
 
 
-### `Bud.Building.RunBuild` function
+## Build Execution API
+
+
+### The `Bud.Building.RunBuild` function
 
 This executes your build tasks in parallel and outputs progress to the standard output (or a text writer if you provide one).
 
