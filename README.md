@@ -10,42 +10,6 @@ __Table of contents__
 Bud.Building is a library for defining and executing builds.
 
 
-# Overview
-
-The library consists of two main parts:
-
-- __Build Definition API__: classes that make up the build graph.
-
-- __Build Execution API__: engines that execute the build graph.
-
-
-## Build Definition API
-
-
-### `IBuildTask` class
-
-The basic building block of the Build Definition API is the `IBuildTask` interface:
-
-```csharp
-public interface IBuildTask {
-  void Execute(IBuildContext ctx);
-  ImmutableArray<IBuildTask> Dependencies {get;};
-}
-```
-
-
-### `Bud.Building.Build` functions
-
-Call `Bud.Building.Build(...)` family of methods to create build tasks and combine them into graphs.
-
-
-### `Bud.Building.RunBuild` function
-
-This executes your build tasks in parallel and outputs progress to the standard output (or a text writer if you provide one).
-
-This function will throw an exception if the build fails.
-
-
 # Example
 
 ```csharp
@@ -92,3 +56,39 @@ Wall time: 1.033s Total: 1.033s Status: failure
 ```
 
 The process will exit with error code 0 if the build succeeds. Otherwise it will exit with error code 1.
+
+
+# Overview
+
+The library consists of two main parts:
+
+- __Build Definition API__: classes that make up the build graph.
+
+- __Build Execution API__: engines that execute the build graph.
+
+
+## Build Definition API
+
+
+### `IBuildTask` class
+
+The basic building block of the Build Definition API is the `IBuildTask` interface:
+
+```csharp
+public interface IBuildTask {
+  void Execute(IBuildContext ctx);
+  ImmutableArray<IBuildTask> Dependencies {get;};
+}
+```
+
+
+### `Bud.Building.Build` functions
+
+Call `Bud.Building.Build(...)` family of methods to create build tasks and combine them into graphs.
+
+
+### `Bud.Building.RunBuild` function
+
+This executes your build tasks in parallel and outputs progress to the standard output (or a text writer if you provide one).
+
+This function will throw an exception if the build fails.
