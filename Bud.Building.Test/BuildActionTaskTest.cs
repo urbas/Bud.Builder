@@ -7,7 +7,7 @@ using NUnit.Framework;
 using static Bud.Building;
 
 namespace Bud {
-  public class BuildingTest {
+  public class BuildActionTaskTest {
     [Test]
     public void RunBuild_executes_the_task() {
       var invoked = false;
@@ -67,7 +67,7 @@ namespace Bud {
       RunBuild(buildOutputWriter, Build(context => {}, name: "foo"));
 
       Assert.That(buildOutputWriter.ToString(),
-                  Does.Contain(@"Started building 'foo'.").And.Contains(@"Done building 'foo'."));
+                  Does.Contain(@"Started building: foo.").And.Contains(@"Done building: foo."));
     }
   }
 }

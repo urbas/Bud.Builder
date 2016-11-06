@@ -50,9 +50,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildAction.cs" />
-    <Compile Include="BuildTask.cs" />
+    <Compile Include="BuildActionTask.cs" />
     <Compile Include="BuildActionContext.cs" />
     <Compile Include="Building.cs" />
+    <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
