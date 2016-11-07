@@ -43,14 +43,18 @@ namespace Bud {
     /// <returns>the build task object.</returns>
     public static BuildActionTask Build(BuildAction action,
                                         string name = null,
-                                        IEnumerable<IBuildTask> dependsOn = null)
+                                        IEnumerable<BuildTask> dependsOn = null)
       => new BuildActionTask(action, name, dependsOn);
 
-    private static int CountTasks(IReadOnlyCollection<IBuildTask> buildTasks)
+    public static object Build(BuildGlobToExtCommand command, string sources, string outputDir, string outputExt) {
+      throw new NotImplementedException();
+    }
+
+    private static int CountTasks(IReadOnlyCollection<BuildTask> buildTasks)
       => buildTasks.Count + buildTasks.Select(task => CountTasks(task.Dependencies)).Sum();
 
     private static TaskGraph ToTaskGraph(TextWriter stdout,
-                                         IBuildTask buildTask,
+                                         BuildTask buildTask,
                                          TaskNumberAssigner taskNumberAssigner,
                                          Stopwatch buildStopwatch) {
       var taskGraphs = buildTask.Dependencies

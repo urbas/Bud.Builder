@@ -5,7 +5,7 @@ namespace Bud {
   /// <summary>
   ///   This class represents an atomic unit of work in a build.
   /// </summary>
-  public class BuildActionTask : IBuildTask {
+  public class BuildActionTask : BuildTask {
     /// <summary>
     ///   This action does the actual work of this build task.
     /// </summary>
@@ -19,25 +19,20 @@ namespace Bud {
     /// </remarks>
     public string Name { get; }
 
-    /// <inheritdoc />
-    public ImmutableArray<IBuildTask> Dependencies { get; }
-
     /// <summary>
     ///   Creates a new build task.
     /// </summary>
     /// <param name="action"><see cref="Action"/></param>
     /// <param name="name"><see cref="Name"/></param>
-    /// <param name="dependencies"><see cref="Dependencies"/></param>
-    public BuildActionTask(BuildAction action, string name = null, IEnumerable<IBuildTask> dependencies = null) {
+    /// <param name="dependencies"><see cref="BuildTask.Dependencies"/></param>
+    public BuildActionTask(BuildAction action, string name = null, IEnumerable<BuildTask> dependencies = null)
+      : base(dependencies) {
       Action = action;
       Name = name;
-      Dependencies = dependencies == null ?
-                       ImmutableArray<IBuildTask>.Empty :
-                       ImmutableArray.CreateRange(dependencies);
     }
 
     /// <inheritdoc />
-    public void Execute(BuildContext ctx) {
+    public override void Execute(BuildContext ctx) {
       LogMessages.LogBuildStart(ctx, Name);
       Action(ctx);
       LogMessages.LogBuildEnd(ctx, Name);
