@@ -7,6 +7,7 @@ using static Bud.TesterAppPath;
 namespace Bud {
   public class BuildGlobToExtTaskTest {
     [Test]
+    [Ignore("TODO: not yet implemented.")]
     public void Build_produces_glob_to_ext_task() {
       using (var dir = new TmpDir()) {
 
