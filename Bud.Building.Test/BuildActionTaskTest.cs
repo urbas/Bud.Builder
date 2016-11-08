@@ -11,7 +11,7 @@ namespace Bud {
     [Test]
     public void RunBuild_executes_the_task() {
       var invoked = false;
-      RunBuild(new StringWriter(), Build(ctx => invoked = true));
+      RunBuild(Build(ctx => invoked = true), stdout: new StringWriter());
 
       Assert.IsTrue(invoked, "The build task was not executed.");
     }
@@ -20,7 +20,7 @@ namespace Bud {
     public void RunBuild_build_start_logged() {
       var buildOutputWriter = new StringWriter();
 
-      RunBuild(buildOutputWriter, Build(context => {}));
+      RunBuild(Build(context => {}), stdout: buildOutputWriter);
 
       Assert.That(buildOutputWriter.ToString(),
                   Does.Match(@".*\[1/1\s+\d*(\.\d{3})?s\] Started building\..*"));
@@ -30,7 +30,7 @@ namespace Bud {
     public void RunBuild_build_done_logged() {
       var buildOutputWriter = new StringWriter();
 
-      RunBuild(buildOutputWriter, Build(action: context => {}));
+      RunBuild(Build(action: context => {}), stdout: buildOutputWriter);
 
       Assert.That(buildOutputWriter.ToString(),
                   Does.Match(@".*\[1/1\s+\d*(\.\d{3})?s\] Done building\..*"));
@@ -40,8 +40,8 @@ namespace Bud {
     public void RunBuild_task_number_logged() {
       var buildOutputWriter = new StringWriter();
 
-      RunBuild(buildOutputWriter,
-               Build(action: context => {}, dependsOn: new []{ Build(action: context => { }) }));
+      RunBuild(Build(action: context => {}, dependsOn: new[] {Build(action: context => {})}),
+               stdout: buildOutputWriter);
 
       Assert.That(buildOutputWriter.ToString(), Does.Contain("[1/2").And.Contains("[2/2"));
     }
@@ -50,7 +50,7 @@ namespace Bud {
     public void RunBuild_task_times_logged() {
       var buildOutputWriter = new StringWriter();
 
-      RunBuild(buildOutputWriter, Build(action: ctx => Thread.Sleep(TimeSpan.FromMilliseconds(10))));
+      RunBuild(Build(action: ctx => Thread.Sleep(TimeSpan.FromMilliseconds(10))), stdout: buildOutputWriter);
 
       var times = Regex.Matches(buildOutputWriter.ToString(), @"\[\d+/\d+\s+(?<time>.+)s\]")
                        .Cast<Match>()
@@ -64,7 +64,7 @@ namespace Bud {
     public void RunBuild_executes_logs_task_name() {
       var buildOutputWriter = new StringWriter();
 
-      RunBuild(buildOutputWriter, Build(context => {}, name: "foo"));
+      RunBuild(Build(context => {}, name: "foo"), stdout: buildOutputWriter);
 
       Assert.That(buildOutputWriter.ToString(),
                   Does.Contain(@"Started building: foo.").And.Contains(@"Done building: foo."));

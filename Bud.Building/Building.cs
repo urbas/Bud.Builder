@@ -13,24 +13,26 @@ namespace Bud {
     /// <summary>
     ///   Executes the build described by the build tasks.
     /// </summary>
+    /// <param name="task">the task that describes the build.</param>
     /// <param name="stdout">the writer to which to print all the build output.</param>
-    /// <param name="buildTasks">the tasks that describe the build.</param>
-    public static void RunBuild(TextWriter stdout, params BuildActionTask[] buildTasks) {
-      var buildStopwatch = new Stopwatch();
-      buildStopwatch.Start();
-      var taskNumberAssigner = new TaskNumberAssigner(CountTasks(buildTasks));
-      var builtTaskGraphs = buildTasks.Select(buildTask => ToTaskGraph(stdout,
-                                                                       buildTask,
-                                                                       taskNumberAssigner,
-                                                                       buildStopwatch));
-      new TaskGraph(builtTaskGraphs).Run();
-    }
+    /// <param name="baseDir">the directory in which the build is to be executed.</param>
+    public static void RunBuild(BuildTask task, TextWriter stdout = null, string baseDir = null)
+      => RunBuild(new []{task}, stdout, baseDir);
 
     /// <summary>
     ///   Executes the build described by the build tasks.
     /// </summary>
-    /// <param name="buildTasks">the tasks that describe the build.</param>
-    public static void RunBuild(params BuildActionTask[] buildTasks) => RunBuild(Console.Out, buildTasks);
+    /// <param name="tasks">the tasks that describe the build.</param>
+    /// <param name="stdout">the writer to which to print all the build output.</param>
+    /// <param name="baseDir">the directory in which the build is to be executed.</param>
+    public static void RunBuild(IEnumerable<BuildTask> tasks, TextWriter stdout = null, string baseDir = null) {
+      var buildTasks = tasks as IList<BuildTask> ?? tasks.ToList();
+      var buildStopwatch = new Stopwatch();
+      buildStopwatch.Start();
+      var taskNumberAssigner = new TaskNumberAssigner(CountTasks(buildTasks));
+      var builtTaskGraphs = buildTasks.Select(task => ToTaskGraph(stdout, task, taskNumberAssigner, buildStopwatch));
+      new TaskGraph(builtTaskGraphs).Run();
+    }
 
     /// <summary>
     ///   Creates a build task that will invoke the given action.
@@ -46,12 +48,13 @@ namespace Bud {
                                         IEnumerable<BuildTask> dependsOn = null)
       => new BuildActionTask(action, name, dependsOn);
 
-    public static object Build(BuildGlobToExtCommand command, string sources, string outputDir, string outputExt) {
-      throw new NotImplementedException();
+    public static BuildGlobToExtTask Build(BuildGlobToExtCommand command, string sources, string outputDir,
+                                           string outputExt) {
+      return null;
     }
 
-    private static int CountTasks(IReadOnlyCollection<BuildTask> buildTasks)
-      => buildTasks.Count + buildTasks.Select(task => CountTasks(task.Dependencies)).Sum();
+    private static int CountTasks(ICollection<BuildTask> tasks)
+      => tasks.Count + tasks.Select(task => CountTasks(task.Dependencies)).Sum();
 
     private static TaskGraph ToTaskGraph(TextWriter stdout,
                                          BuildTask buildTask,

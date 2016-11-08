@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Bud {
@@ -8,8 +9,10 @@ namespace Bud {
   /// to invoke external compilers.
   /// </summary>
   public class BuildGlobToExtContext {
-    public void Command(string tscExe, string s) {
-      throw new System.NotImplementedException();
+    public void Command(string executablePath,
+                        string args = null,
+                        string cwd = null,
+                        IDictionary<string, string> env = null) {
     }
 
     public string OutputDir { get; }
