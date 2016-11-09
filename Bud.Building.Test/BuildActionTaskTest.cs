@@ -17,6 +17,15 @@ namespace Bud {
     }
 
     [Test]
+    public void RunBuild_executes_duplicated_tasks_once() {
+      var invocationCount = 0;
+      var task = Build(ctx => Interlocked.Increment(ref invocationCount));
+      RunBuild(new []{task, task}, stdout: new StringWriter());
+
+      Assert.AreEqual(1, invocationCount);
+    }
+
+    [Test]
     public void RunBuild_build_start_logged() {
       var buildOutputWriter = new StringWriter();
 

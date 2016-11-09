@@ -1,3 +1,4 @@
+using System.IO;
 using NUnit.Framework;
 using static Bud.Building;
 using static Bud.Exec;
@@ -8,12 +9,15 @@ namespace Bud {
     [Test]
     public void Build_produces_glob_to_ext_task() {
       using (var dir = new TmpDir()) {
-        var task = Build(command: ctx => ctx.Command(TesterApp, $"trim --rootDir src --outDir {ctx.OutputDir} {Args(ctx.Sources)}"),
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
+
+        var task = Build(command: ctx => ctx.Command(TesterApp,
+                                                     $"trim --rootDir {Arg(dir.CreateDir("src"))} " +
+                                                     $"--outDir {ctx.OutputDir} {Args(ctx.Sources)}"),
                          sources: "src/**/*.txt", outputDir: "build/js", outputExt: ".txt.nospace");
 
-        Run(TesterApp, Args("--rootDir", "src", "--outDir", dir.CreateDir("build"), "foo.txt", "bar.txt"));
-
-//        RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
       }
     }
   }

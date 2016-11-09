@@ -10,11 +10,14 @@ namespace Bud {
     /// <param name="buildStopwatch"><see cref="BuildStopwatch"/></param>
     /// <param name="thisTaskNumber"><see cref="ThisTaskNumber"/></param>
     /// <param name="totalTasks"><see cref="TotalTasks"/></param>
-    public BuildContext(TextWriter stdout, Stopwatch buildStopwatch, int thisTaskNumber, int totalTasks) {
+    /// <param name="baseDir"><see cref="BaseDir"/></param>
+    public BuildContext(TextWriter stdout, Stopwatch buildStopwatch, int thisTaskNumber, int totalTasks,
+                        string baseDir) {
       Stdout = stdout;
       BuildStopwatch = buildStopwatch;
       ThisTaskNumber = thisTaskNumber;
       TotalTasks = totalTasks;
+      BaseDir = baseDir;
     }
 
     /// <summary>
@@ -24,7 +27,7 @@ namespace Bud {
 
     /// <summary>
     ///   this stopwatch will be stopping time since the moment the user invoked
-    ///   the <see cref="Building.RunBuild"/> function.
+    ///   the <see cref="Building.RunBuild(Bud.BuildTask,System.IO.TextWriter,string)"/> function.
     /// </summary>
     public Stopwatch BuildStopwatch {get;}
 
@@ -50,5 +53,10 @@ namespace Bud {
     ///   the total number of tasks in a build graph that is currently being executed.
     /// </summary>
     public int TotalTasks {get;}
+
+    /// <summary>
+    ///   This is the directory where the build was executed.
+    /// </summary>
+    public string BaseDir { get; }
   }
 }

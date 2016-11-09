@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -30,7 +29,9 @@ namespace Bud {
       var buildStopwatch = new Stopwatch();
       buildStopwatch.Start();
       var taskNumberAssigner = new TaskNumberAssigner(CountTasks(buildTasks));
-      var builtTaskGraphs = buildTasks.Select(task => ToTaskGraph(stdout, task, taskNumberAssigner, buildStopwatch));
+      baseDir = Directory.GetCurrentDirectory();
+      var task2TaskGraphs = new Dictionary<BuildTask, TaskGraph>();
+      var builtTaskGraphs = buildTasks.Select(task => ToTaskGraph(task2TaskGraphs, stdout, task, taskNumberAssigner, buildStopwatch, baseDir));
       new TaskGraph(builtTaskGraphs).Run();
     }
 
@@ -43,33 +44,47 @@ namespace Bud {
     /// </param>
     /// <param name="dependsOn">other build tasks that should be invoked before this build task.</param>
     /// <returns>the build task object.</returns>
-    public static BuildActionTask Build(BuildAction action,
-                                        string name = null,
-                                        IEnumerable<BuildTask> dependsOn = null)
+    public static BuildActionTask Build(BuildAction action, string name = null, IEnumerable<BuildTask> dependsOn = null)
       => new BuildActionTask(action, name, dependsOn);
 
+    /// <summary>
+    ///   Creates a build task where multiple sources are built into multiple output files.
+    /// </summary>
+    /// <param name="command">this function performs the actual build.</param>
+    /// <param name="sources">a glob pattern that will match files in the base directory (the directory in which
+    /// the build was executed).</param>
+    /// <param name="outputDir">the directory where output files will be placed.</param>
+    /// <param name="outputExt">the extension of output files.</param>
+    /// <param name="signature">see <see cref="BuildGlobToExtTask.Signature"/></param>
+    /// <param name="dependsOn">other build tasks that this task depends on.</param>
+    /// <returns>a build task that can be executed through
+    /// <see cref="RunBuild(Bud.BuildTask,System.IO.TextWriter,string)"/> or can be used as a dependency of
+    /// another task.</returns>
     public static BuildGlobToExtTask Build(BuildGlobToExtCommand command, string sources, string outputDir,
-                                           string outputExt) {
-      return null;
-    }
+                                           string outputExt, string signature = null,
+                                           IEnumerable<BuildTask> dependsOn = null)
+      => new BuildGlobToExtTask(command, sources, outputDir, outputExt, signature, dependsOn);
 
     private static int CountTasks(ICollection<BuildTask> tasks)
       => tasks.Count + tasks.Select(task => CountTasks(task.Dependencies)).Sum();
 
-    private static TaskGraph ToTaskGraph(TextWriter stdout,
-                                         BuildTask buildTask,
-                                         TaskNumberAssigner taskNumberAssigner,
-                                         Stopwatch buildStopwatch) {
+    private static TaskGraph ToTaskGraph(Dictionary<BuildTask, TaskGraph> task2TaskGraphs, TextWriter stdout, BuildTask buildTask, TaskNumberAssigner taskNumberAssigner, Stopwatch buildStopwatch, string baseDir) {
+      TaskGraph taskGraph;
+      return task2TaskGraphs.TryGetValue(buildTask, out taskGraph) ?
+               taskGraph :
+               CreateTaskGraph(task2TaskGraphs, stdout, buildTask, taskNumberAssigner, buildStopwatch, baseDir);
+    }
+
+    private static TaskGraph CreateTaskGraph(Dictionary<BuildTask, TaskGraph> task2TaskGraphs, TextWriter stdout, BuildTask buildTask, TaskNumberAssigner taskNumberAssigner, Stopwatch buildStopwatch, string baseDir) {
       var taskGraphs = buildTask.Dependencies
-                                .Select(dependencyBuildTask => ToTaskGraph(stdout,
-                                                                           dependencyBuildTask,
-                                                                           taskNumberAssigner,
-                                                                           buildStopwatch))
+                                .Select(dependencyBuildTask => ToTaskGraph(task2TaskGraphs, stdout, dependencyBuildTask,
+                                                                           taskNumberAssigner, buildStopwatch, baseDir))
                                 .ToImmutableArray();
-      var thisTaskNumber = taskNumberAssigner.AssignNumber();
-      return new TaskGraph(
-        () => buildTask.Execute(new BuildContext(stdout, buildStopwatch, thisTaskNumber, taskNumberAssigner.TotalTasks)),
-        taskGraphs);
+      var buildContext = new BuildContext(stdout, buildStopwatch, taskNumberAssigner.AssignNumber(),
+                                          taskNumberAssigner.TotalTasks, baseDir);
+      var taskGraph = new TaskGraph(() => buildTask.Execute(buildContext), taskGraphs);
+      task2TaskGraphs.Add(buildTask, taskGraph);
+      return taskGraph;
     }
   }
 
