@@ -38,9 +38,6 @@
       <HintPath>..\packages\Bud.TaskGraph.1.1.0\lib\net46\Bud.TaskGraph.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Extensions.FileSystemGlobbing, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-      <HintPath>..\packages\Microsoft.Extensions.FileSystemGlobbing.1.0.0\lib\net451\Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\System.Collections.Immutable.1.2.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
@@ -57,13 +54,17 @@
     <Compile Include="BuildAction.cs" />
     <Compile Include="BuildActionTask.cs" />
     <Compile Include="BuildContext.cs" />
+    <Compile Include="BuildExecution.cs" />
     <Compile Include="BuildGlobToExtCommand.cs" />
     <Compile Include="BuildGlobToExtContext.cs" />
     <Compile Include="BuildGlobToExtTask.cs" />
     <Compile Include="Building.cs" />
     <Compile Include="BuildTask.cs" />
+    <Compile Include="FilesByExtInDir.cs" />
+    <Compile Include="IBuildContext.cs" />
     <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BuildTaskNumberAssigner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -16,7 +16,7 @@ using static Bud.Building;
 class Program {
   static void Main(string[] args) {
     var typeScript = Build(command:   ctx => ctx.Command("tsc.exe", $"--outDir {ctx.OutputDir} {Args(ctx.Sources)}"),
-                           sources:   "src/**/*.ts", 
+                           sources:   Glob("src", ".ts"), 
                            outputDir: "build/js",
                            outputExt: ".js");
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace Bud {
   /// <summary>This build task is suitable for builders/compilers that take multiple source files
@@ -51,10 +52,9 @@ namespace Bud {
     public BuildGlobToExtCommand Command { get; }
 
     /// <summary>
-    ///  This is a glob pattern through which to find files in the base directory. The found files will be the input
-    ///  source files to the build command.
+    ///  This matches sources by extension in a particular directory.
     /// </summary>
-    public string Sources { get; }
+    public FilesByExtInDir Sources { get; }
 
     /// <summary>
     ///   The directory where all output files will be placed.
@@ -75,8 +75,12 @@ namespace Bud {
     /// <summary>
     ///    Creates a new build task.
     /// </summary>
-    public BuildGlobToExtTask(BuildGlobToExtCommand command, string sources, string outputDir, string outputExt,
-                              string signature = null, IEnumerable<BuildTask> dependencies = null)
+    public BuildGlobToExtTask(BuildGlobToExtCommand command,
+                              FilesByExtInDir sources,
+                              string outputDir,
+                              string outputExt,
+                              string signature = null,
+                              IEnumerable<BuildTask> dependencies = null)
       : base(dependencies) {
       Command = command;
       Sources = sources;
@@ -86,6 +90,13 @@ namespace Bud {
     }
 
     /// <inheritdoc />
-    public override void Execute(BuildContext ctx) {}
+    public override void Execute(BuildContext ctx) {
+      Command(new BuildGlobToExtContext(ctx,
+                                        Sources.Find(ctx.BaseDir),
+                                        Sources.AbsDir(ctx.BaseDir),
+                                        Sources.Ext,
+                                        OutputDir,
+                                        OutputExt));
+    }
   }
 }

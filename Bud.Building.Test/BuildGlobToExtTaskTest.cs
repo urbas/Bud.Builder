@@ -9,15 +9,22 @@ namespace Bud {
     [Test]
     public void Build_produces_glob_to_ext_task() {
       using (var dir = new TmpDir()) {
+        var srcDir = dir.CreateDir("src");
         dir.CreateFile("  foo  ", "src", "foo.txt");
         dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
 
-        var task = Build(command: ctx => ctx.Command(TesterApp,
-                                                     $"trim --rootDir {Arg(dir.CreateDir("src"))} " +
-                                                     $"--outDir {ctx.OutputDir} {Args(ctx.Sources)}"),
-                         sources: "src/**/*.txt", outputDir: "build/js", outputExt: ".txt.nospace");
+        var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.RootDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
+                         sources: Glob("src", ".txt"),
+                         outputDir: "build",
+                         outputExt: ".txt.nospace");
 
         RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
+                            dir.CreatePath("build", "foo.txt.nospace"));
+
+        FileAssert.AreEqual(dir.CreateFile("bar", "bar.expected"),
+                            dir.CreatePath("build", "subdir", "bar.txt.nospace"));
       }
     }
   }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Bud.BuildingTesterApp.Options;
 using CommandLine;
 
@@ -11,7 +12,14 @@ namespace Bud.BuildingTesterApp {
                .MapResult(DoTrim, OnError);
 
     private static int DoTrim(TrimVerb args) {
-      Console.WriteLine($"Trimming. outDir: {args.OutDir}, rootDir: {args.RootDir}, files: {string.Join(", ", args.SourceFiles)}");
+      var rootDirUri = new Uri($"{args.RootDir}/");
+      foreach (var sourceFile in args.SourceFiles) {
+        var content = File.ReadAllText(sourceFile).Trim();
+        var relativeUri = rootDirUri.MakeRelativeUri(new Uri(sourceFile));
+        var combine = Path.Combine(args.OutDir, $"{relativeUri}.nospace");
+        Directory.CreateDirectory(Path.GetDirectoryName(combine));
+        File.WriteAllText(combine, content);
+      }
       return 0;
     }
 
