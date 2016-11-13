@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Bud {
   /// <summary>This build task is suitable for builders/compilers that take multiple source files
@@ -91,12 +93,25 @@ namespace Bud {
 
     /// <inheritdoc />
     public override void Execute(BuildContext ctx) {
-      Command(new BuildGlobToExtContext(ctx,
-                                        Sources.Find(ctx.BaseDir),
-                                        Sources.AbsDir(ctx.BaseDir),
-                                        Sources.Ext,
-                                        OutputDir,
-                                        OutputExt));
+      var sources = Sources.Find(ctx.BaseDir);
+      var rootDir = Sources.AbsDir(ctx.BaseDir);
+      var rootDirUri = new Uri($"{rootDir}/");
+      var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
+
+      var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, Sources.Ext, outputDir, OutputExt);
+      var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
+                                       .Select(relativePath => ToOutputPath(outputDir, relativePath))
+                                       .ToList();
+
+      if (expectedOutputFiles.All(File.Exists)) {
+        return;
+      }
+      Command(buildGlobToExtContext);
     }
+
+    private string ToOutputPath(string outputDir, string relativePath)
+      => Path.Combine(outputDir,
+                      Path.GetDirectoryName(relativePath),
+                      Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
   }
 }
