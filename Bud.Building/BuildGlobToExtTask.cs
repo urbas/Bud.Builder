@@ -54,9 +54,15 @@ namespace Bud {
     public BuildGlobToExtCommand Command { get; }
 
     /// <summary>
-    ///  This matches sources by extension in a particular directory.
+    /// The directory in which to search for sources. If this directory is relative, then it will be resolved against
+    /// the the base directory of the build (see <see cref="BuildContext.BaseDir"/>).
     /// </summary>
-    public FilesByExtInDir Sources { get; }
+    public string SourceDir { get; }
+
+    /// <summary>
+    /// The extension of source files.
+    /// </summary>
+    public string SourceExt { get; }
 
     /// <summary>
     ///   The directory where all output files will be placed.
@@ -78,14 +84,16 @@ namespace Bud {
     ///    Creates a new build task.
     /// </summary>
     public BuildGlobToExtTask(BuildGlobToExtCommand command,
-                              FilesByExtInDir sources,
+                              string sourceDir,
+                              string sourceExt,
                               string outputDir,
                               string outputExt,
                               string signature = null,
                               IEnumerable<BuildTask> dependencies = null)
       : base(dependencies) {
       Command = command;
-      Sources = sources;
+      SourceDir = sourceDir;
+      SourceExt = sourceExt;
       OutputDir = outputDir;
       OutputExt = outputExt;
       Signature = signature;
@@ -93,12 +101,12 @@ namespace Bud {
 
     /// <inheritdoc />
     public override void Execute(BuildContext ctx) {
-      var sources = Sources.Find(ctx.BaseDir);
-      var rootDir = Sources.AbsDir(ctx.BaseDir);
+      var rootDir = FilesUtils.ToAbsDir(SourceDir, ctx.BaseDir);
+      var sources = FilesUtils.Find(rootDir, SourceExt);
       var rootDirUri = new Uri($"{rootDir}/");
       var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
 
-      var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, Sources.Ext, outputDir, OutputExt);
+      var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, SourceExt, outputDir, OutputExt);
       var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
                                        .Select(relativePath => ToOutputPath(outputDir, relativePath))
                                        .ToList();

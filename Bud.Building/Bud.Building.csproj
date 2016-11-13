@@ -60,7 +60,7 @@
     <Compile Include="BuildGlobToExtTask.cs" />
     <Compile Include="Building.cs" />
     <Compile Include="BuildTask.cs" />
-    <Compile Include="FilesByExtInDir.cs" />
+    <Compile Include="FilesUtils.cs" />
     <Compile Include="IBuildContext.cs" />
     <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

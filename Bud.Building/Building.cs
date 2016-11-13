@@ -22,20 +22,21 @@ namespace Bud {
     ///   Creates a build task where multiple sources are built into multiple output files.
     /// </summary>
     /// <param name="command">this function performs the actual build.</param>
-    /// <param name="sources">a glob pattern that will match files in the base directory (the directory in which
-    /// the build was executed).</param>
+    /// <param name="sourceDir">the directory in which to search for source files.</param>
+    /// <param name="sourceExt">the extension of source files.</param>
     /// <param name="outputDir">the directory where output files will be placed.</param>
     /// <param name="outputExt">the extension of output files.</param>
     /// <param name="signature">see <see cref="BuildGlobToExtTask.Signature"/></param>
     /// <param name="dependsOn">other build tasks that this task depends on.</param>
     /// <returns>a build task that can be executed or can be used as a dependency of another task.</returns>
     public static BuildGlobToExtTask Build(BuildGlobToExtCommand command,
-                                           FilesByExtInDir sources,
+                                           string sourceDir,
+                                           string sourceExt,
                                            string outputDir,
                                            string outputExt,
                                            string signature = null,
                                            IEnumerable<BuildTask> dependsOn = null)
-      => new BuildGlobToExtTask(command, sources, outputDir, outputExt, signature, dependsOn);
+      => new BuildGlobToExtTask(command, sourceDir, sourceExt, outputDir, outputExt, signature, dependsOn);
 
     /// <summary>
     ///   Executes the build described by the build tasks.
@@ -66,13 +67,5 @@ namespace Bud {
                                 string baseDir = null,
                                 string metaDir = null)
       => BuildExecution.RunBuild(tasks, stdout, baseDir, metaDir);
-
-    /// <summary>
-    ///   Searches for files with the given extension in the given directory.
-    /// </summary>
-    /// <param name="dir">See <see cref="FilesByExtInDir.Dir"/>.</param>
-    /// <param name="ext">See <see cref="FilesByExtInDir.Ext"/>.</param>
-    /// <returns></returns>
-    public static FilesByExtInDir Glob(string dir, string ext) => new FilesByExtInDir(dir, ext);
   }
 }

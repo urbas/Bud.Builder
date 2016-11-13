@@ -13,7 +13,8 @@ namespace Bud {
         dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
 
         var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.RootDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
-                         sources: Glob("src", ".txt"),
+                         sourceDir: "src",
+                         sourceExt: ".txt",
                          outputDir: "build",
                          outputExt: ".txt.nospace");
 
@@ -59,7 +60,8 @@ namespace Bud {
     private static BuildGlobToExtTask TrimTxtFiles()
       => new BuildGlobToExtTask(
         command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.RootDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
-        sources: Glob("src", ".txt"),
+        sourceDir: "src",
+        sourceExt: ".txt",
         outputDir: "build",
         outputExt: ".txt.nospace");
   }
