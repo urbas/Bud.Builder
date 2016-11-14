@@ -43,7 +43,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO: Implement.")]
     public void Command_reinvoked_on_change() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");

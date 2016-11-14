@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using static Bud.FileUtils;
 
 namespace Bud {
   /// <summary>This build task is suitable for builders/compilers that take multiple source files
@@ -89,8 +91,7 @@ namespace Bud {
                               string outputDir,
                               string outputExt,
                               string signature = null,
-                              IEnumerable<BuildTask> dependencies = null)
-      : base(dependencies) {
+                              IEnumerable<BuildTask> dependencies = null) : base(dependencies) {
       Command = command;
       SourceDir = sourceDir;
       SourceExt = sourceExt;
@@ -101,25 +102,63 @@ namespace Bud {
 
     /// <inheritdoc />
     public override void Execute(BuildContext ctx) {
-      var rootDir = FilesUtils.ToAbsDir(SourceDir, ctx.BaseDir);
-      var sources = FilesUtils.Find(rootDir, SourceExt);
+      var rootDir = ToAbsDir(SourceDir, ctx.BaseDir);
+      var sources = FindFiles(rootDir, SourceExt);
       var rootDirUri = new Uri($"{rootDir}/");
       var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
 
-      var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, SourceExt, outputDir, OutputExt);
       var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
                                        .Select(relativePath => ToOutputPath(outputDir, relativePath))
                                        .ToList();
 
-      if (expectedOutputFiles.All(File.Exists)) {
-        return;
+      if (IsExecutionNeeded(sources, expectedOutputFiles, ctx.BaseDir)) {
+        var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, SourceExt, outputDir, OutputExt);
+        Command(buildGlobToExtContext);
       }
-      Command(buildGlobToExtContext);
     }
 
     private string ToOutputPath(string outputDir, string relativePath)
       => Path.Combine(outputDir,
                       Path.GetDirectoryName(relativePath),
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
+
+    private static bool IsExecutionNeeded(IEnumerable<string> sources,
+                                          IEnumerable<string> expectedOutputFiles,
+                                          string baseDir) {
+      var digest = DigestSources(sources);
+      var taskSignaturesDir = Path.Combine(baseDir, "task_signatures");
+      var hexDigest = Convert.ToBase64String(digest);
+      var taskSignatureFile = Path.Combine(taskSignaturesDir, hexDigest);
+      if (expectedOutputFiles.All(File.Exists) && IsTaskUpToDate(taskSignatureFile, digest)) {
+        return false;
+      }
+      Directory.CreateDirectory(taskSignaturesDir);
+      File.WriteAllBytes(taskSignatureFile, digest);
+      return true;
+    }
+
+    private static byte[] DigestSources(IEnumerable<string> sources) {
+      var buffer = new byte[1 << 14];
+      var hashAlgorithm = SHA256.Create();
+      hashAlgorithm.Initialize();
+      foreach (var source in sources) {
+        DigestSource(hashAlgorithm, source, buffer);
+      }
+      hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+      return hashAlgorithm.Hash;
+    }
+
+    private static void DigestSource(ICryptoTransform digest, string file, byte[] buffer) {
+      using (var fileStream = File.OpenRead(file)) {
+        int readBytes;
+        do {
+          readBytes = fileStream.Read(buffer, 0, buffer.Length);
+          digest.TransformBlock(buffer, 0, readBytes, buffer, 0);
+        } while (readBytes == buffer.Length);
+      }
+    }
+
+    private static bool IsTaskUpToDate(string signatureFile, IEnumerable<byte> digest)
+      => File.Exists(signatureFile) && File.ReadAllBytes(signatureFile).SequenceEqual(digest);
   }
 }

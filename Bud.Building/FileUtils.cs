@@ -5,12 +5,12 @@ namespace Bud {
   /// <summary>
   ///    This class can find files with a particular extension in the given directory.
   /// </summary>
-  public class FilesUtils {
+  public class FileUtils {
     /// <summary>
     ///   Finds all files in the directory <see cref="dir"/> that have the extension <see cref="ext"/>.
     /// </summary>
     /// <returns>an array of found files.</returns>
-    public static ImmutableArray<string> Find(string dir, string ext) {
+    public static ImmutableArray<string> FindFiles(string dir, string ext) {
       if (Directory.Exists(dir)) {
         return Directory.EnumerateFiles(dir, $"*{ext}", SearchOption.AllDirectories)
                         .ToImmutableArray();
