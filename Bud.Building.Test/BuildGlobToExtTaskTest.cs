@@ -56,6 +56,19 @@ namespace Bud {
       }
     }
 
+    [Test]
+    public void Extraneous_files_deleted() {
+      using (var dir = new TmpDir()) {
+        var srcFile = dir.CreateFile("  foo  ", "src", "foo.txt");
+
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        File.Delete(srcFile);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.DoesNotExist(dir.CreatePath("build", "foo.txt.nospace"));
+      }
+    }
+
     private static BuildGlobToExtTask TrimTxtFiles()
       => new BuildGlobToExtTask(
         command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.RootDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),

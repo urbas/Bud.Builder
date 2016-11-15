@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -107,13 +108,23 @@ namespace Bud {
       var rootDirUri = new Uri($"{rootDir}/");
       var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
 
-      var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
-                                       .Select(relativePath => ToOutputPath(outputDir, relativePath))
-                                       .ToList();
+      var expectedOutputFiles = new HashSet<string>(
+        sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
+               .Select(relativePath => ToOutputPath(outputDir, relativePath)));
+
+      DeleteExtraneousFiles(outputDir, expectedOutputFiles);
 
       if (IsExecutionNeeded(sources, expectedOutputFiles, ctx.BaseDir)) {
         var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, SourceExt, outputDir, OutputExt);
         Command(buildGlobToExtContext);
+      }
+    }
+
+    private void DeleteExtraneousFiles(string outputDir, ICollection<string> expectedOutputFiles) {
+      foreach (var outputFile in FindFiles(outputDir, OutputExt)) {
+        if (!expectedOutputFiles.Contains(outputFile)) {
+          File.Delete(outputFile);
+        }
       }
     }
 
@@ -127,7 +138,7 @@ namespace Bud {
                                           string baseDir) {
       var digest = DigestSources(sources);
       var taskSignaturesDir = Path.Combine(baseDir, "task_signatures");
-      var hexDigest = Convert.ToBase64String(digest);
+      var hexDigest = ToHex(digest);
       var taskSignatureFile = Path.Combine(taskSignaturesDir, hexDigest);
       if (expectedOutputFiles.All(File.Exists) && IsTaskUpToDate(taskSignatureFile, digest)) {
         return false;
@@ -160,5 +171,19 @@ namespace Bud {
 
     private static bool IsTaskUpToDate(string signatureFile, IEnumerable<byte> digest)
       => File.Exists(signatureFile) && File.ReadAllBytes(signatureFile).SequenceEqual(digest);
+
+    private static string ToHex(byte[] bytes) {
+      var hexDigits = new char[bytes.Length * 2];
+
+      for (int byteIdx = 0; byteIdx < bytes.Length; ++byteIdx) {
+        var hexxDigitIdx = byteIdx << 1;
+        hexDigits[hexxDigitIdx] = NibbleToHexDigit((byte) (bytes[byteIdx] >> 4));
+        hexDigits[hexxDigitIdx + 1] = NibbleToHexDigit((byte) (bytes[byteIdx] & 0x0F));
+      }
+
+      return new string(hexDigits);
+    }
+
+    private static char NibbleToHexDigit(byte nibble) => (char) (nibble > 9 ? nibble - 10 + 'A' : nibble + '0');
   }
 }
