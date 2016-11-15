@@ -26,8 +26,7 @@ namespace Bud {
     public TextWriter Stdout {get;}
 
     /// <summary>
-    ///   this stopwatch will be stopping time since the moment the user invoked
-    ///   the <see cref="Building.RunBuild(Bud.BuildTask,System.IO.TextWriter,string)"/> function.
+    ///   this stopwatch will be stopping time since the moment the user invoked the build.
     /// </summary>
     public Stopwatch BuildStopwatch {get;}
 

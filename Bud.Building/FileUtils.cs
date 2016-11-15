@@ -7,7 +7,7 @@ namespace Bud {
   /// </summary>
   public class FileUtils {
     /// <summary>
-    ///   Finds all files in the directory <see cref="dir"/> that have the extension <see cref="ext"/>.
+    ///   Finds all files in the directory <paramref name="dir"/> that have the extension <paramref name="ext"/>.
     /// </summary>
     /// <returns>an array of found files.</returns>
     public static ImmutableArray<string> FindFiles(string dir, string ext) {
