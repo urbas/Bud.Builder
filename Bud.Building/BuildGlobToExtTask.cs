@@ -103,9 +103,9 @@ namespace Bud {
 
     /// <inheritdoc />
     public override void Execute(BuildContext ctx) {
-      var rootDir = ToAbsDir(SourceDir, ctx.BaseDir);
-      var sources = FindFiles(rootDir, SourceExt);
-      var rootDirUri = new Uri($"{rootDir}/");
+      var sourceDir = ToAbsDir(SourceDir, ctx.BaseDir);
+      var sources = FindFiles(sourceDir, SourceExt);
+      var rootDirUri = new Uri($"{sourceDir}/");
       var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
 
       var expectedOutputFiles = new HashSet<string>(
@@ -115,7 +115,7 @@ namespace Bud {
       DeleteExtraneousFiles(outputDir, expectedOutputFiles);
 
       if (IsExecutionNeeded(sources, expectedOutputFiles, ctx.BaseDir)) {
-        var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, rootDir, SourceExt, outputDir, OutputExt);
+        var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
         Command(buildGlobToExtContext);
       }
     }

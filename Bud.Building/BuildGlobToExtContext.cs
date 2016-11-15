@@ -12,15 +12,32 @@ namespace Bud {
   /// to invoke external compilers.
   /// </summary>
   public class BuildGlobToExtContext : IBuildContext {
-    public BuildGlobToExtContext(BuildContext ctx, ImmutableArray<string> sources, string rootDir, string sourcesExt, string outputDir, string outputExt) {
+    /// <summary>
+    ///   Creates a new context with the given information.
+    /// </summary>
+    public BuildGlobToExtContext(BuildContext ctx, ImmutableArray<string> sources, string sourceDir, string sourcesExt, string outputDir, string outputExt) {
       Context = ctx;
       Sources = sources;
-      RootDir = rootDir;
+      SourceDir = sourceDir;
       SourcesExt = sourcesExt;
       OutputDir = outputDir;
       OutputExt = outputExt;
     }
 
+    /// <summary>
+    /// A helper function for executing external processes. The main purpose of this function is to log the output of
+    /// the invoked process in the common format.
+    /// </summary>
+    /// <param name="executablePath">The executable to invoke.</param>
+    /// <param name="args">The arguments to pass to the executable. You can use functions
+    /// <see cref="Exec.Args(string[])"/> and <see cref="Exec.Arg"/> in this parameter.</param>
+    /// <param name="cwd">the working directory where the process should run. If not given, <see cref="BaseDir"/> will
+    /// be used.</param>
+    /// <param name="env">the environment to pass to the process. If none given, the process will inherit the
+    /// environment from this process.</param>
+    /// <remarks>
+    ///   This method throws if the process fails.
+    /// </remarks>
     public void Command(string executablePath,
                         string args = null,
                         string cwd = null,
@@ -29,15 +46,49 @@ namespace Bud {
     }
 
     private BuildContext Context { get; }
+
+    /// <summary>
+    /// The directory into which the task will place output files.
+    /// </summary>
     public string OutputDir { get; }
+
+    /// <summary>
+    /// The extension of output files.
+    /// </summary>
     public string OutputExt { get; }
+
+    /// <summary>
+    /// The sources this task should build.
+    /// </summary>
     public ImmutableArray<string> Sources { get; }
-    public string RootDir { get; }
+
+    /// <summary>
+    ///   The directory where source files will be searched for.
+    /// </summary>
+    /// <remarks>
+    ///   The directory relative to which paths of source files will be computed. This relative path will be equal to
+    ///   the relative path of corresponding output files.
+    /// </remarks>
+    public string SourceDir { get; }
+
+    /// <summary>
+    ///   The extension of source files.
+    /// </summary>
     public string SourcesExt { get; }
+
+    /// <inheritdoc />
     public TextWriter Stdout => Context.Stdout;
+
+    /// <inheritdoc />
     public Stopwatch BuildStopwatch => Context.BuildStopwatch;
+
+    /// <inheritdoc />
     public int ThisTaskNumber => Context.ThisTaskNumber;
+
+    /// <inheritdoc />
     public int TotalTasks => Context.TotalTasks;
+
+    /// <inheritdoc />
     public string BaseDir => Context.BaseDir;
   }
 }
