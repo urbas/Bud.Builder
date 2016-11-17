@@ -23,12 +23,12 @@ namespace Bud {
     /// <summary>
     ///   The output to which to write all output of this build task.
     /// </summary>
-    public TextWriter Stdout {get;}
+    public TextWriter Stdout { get; }
 
     /// <summary>
     ///   this stopwatch will be stopping time since the moment the user invoked the build.
     /// </summary>
-    public Stopwatch BuildStopwatch {get;}
+    public Stopwatch BuildStopwatch { get; }
 
     /// <summary>
     ///   The number of the task to which this context belongs. Every build task in the task graph is
@@ -46,12 +46,12 @@ namespace Bud {
     ///     - the task number of a task is larger than any of the task numbers of its dependencies.
     ///   </para>
     /// </summary>
-    public int ThisTaskNumber {get;}
+    public int ThisTaskNumber { get; }
 
     /// <summary>
     ///   the total number of tasks in a build graph that is currently being executed.
     /// </summary>
-    public int TotalTasks {get;}
+    public int TotalTasks { get; }
 
     /// <summary>
     ///   This is the directory where the build was executed.
