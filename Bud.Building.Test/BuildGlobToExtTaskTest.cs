@@ -69,12 +69,28 @@ namespace Bud {
       }
     }
 
-    private static BuildGlobToExtTask TrimTxtFiles()
+    [Test]
+    [Ignore("TODO: To be fixed.")]
+    public void Build_tasks_with_same_sources_do_not_interfere() {
+      using (var dir = new TmpDir()) {
+        var srcFile = dir.CreateFile("  foo  ", "src", "foo.txt");
+
+        RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
+        dir.CreateFile("  foo2  ", "src", "foo.txt");
+        RunBuild(TrimTxtFiles(outputDir: "build1"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.AreEqual(dir.CreateFile("foo2", "foo.expected"),
+                            dir.CreatePath("build2", "foo.txt.nospace"));
+      }
+    }
+
+    private static BuildGlobToExtTask TrimTxtFiles(string outputDir = "build")
       => new BuildGlobToExtTask(
         command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
         sourceDir: "src",
         sourceExt: ".txt",
-        outputDir: "build",
+        outputDir: outputDir,
         outputExt: ".txt.nospace");
   }
 }
