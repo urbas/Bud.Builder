@@ -73,10 +73,12 @@ namespace Bud {
     [Ignore("TODO: To be fixed.")]
     public void Build_tasks_with_same_sources_do_not_interfere() {
       using (var dir = new TmpDir()) {
-        var srcFile = dir.CreateFile("  foo  ", "src", "foo.txt");
+        dir.CreateFile("  foo  ", "src", "foo.txt");
 
         RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
+
         dir.CreateFile("  foo2  ", "src", "foo.txt");
+
         RunBuild(TrimTxtFiles(outputDir: "build1"), stdout: new StringWriter(), baseDir: dir.Path);
         RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
 
