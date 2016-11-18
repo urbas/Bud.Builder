@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using NUnit.Framework;
 using static Bud.Building;
@@ -87,12 +88,52 @@ namespace Bud {
       }
     }
 
-    private static BuildGlobToExtTask TrimTxtFiles(string outputDir = "build")
+    [Test]
+    [Ignore("TODO: To be fixed.")]
+    public void Throw_when_given_conflicting_build_tasks() {
+      var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
+                                                                TrimTxtFiles(outputDir: "build"),
+                                                                TrimTxtFiles(outputDir: "build")
+                                                              }));
+      Assert.That(exception.Message,
+                  Contains.Substring("Invalid build specification.")
+                          .And.Contains("Found duplicate tasks 'src/**/*.txt -> build/**/*.txt.nospace'."));
+    }
+
+    [Test]
+    [Ignore("TODO: To be fixed.")]
+    public void Throw_when_one_build_task_builds_into_the_build_dir_of_another() {
+      var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
+                                                                TrimTxtFiles(outputDir: "build"),
+                                                                TrimTxtFiles(outputDir: "build/foo")
+                                                              }));
+      Assert.That(exception.Message,
+                  Contains.Substring("Invalid build specification.")
+                          .And.Contains("Found a task that produces files 'build/**/*.txt.nospace' and another that " +
+                                        "produces files 'build/foo/**/*.txt.nospace'."));
+    }
+
+    [Test]
+    [Ignore("TODO: To be fixed.")]
+    public void Allow_tasks_with_same_build_dirs_but_different_output_exts() {
+      using (var dir = new TmpDir()) {
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        var expectedOutput = dir.CreateFile("foo", "foo.expected");
+
+        RunBuild(new []{TrimTxtFiles(outputExt: ".nospace1"), TrimTxtFiles(outputExt: ".nospace2")},
+                 stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.AreEqual(expectedOutput, dir.CreatePath("build", "foo.nospace1"));
+        FileAssert.AreEqual(expectedOutput, dir.CreatePath("build", "foo.nospace2"));
+      }
+    }
+
+    private static BuildGlobToExtTask TrimTxtFiles(string outputExt = ".txt.nospace", string outputDir = "build")
       => new BuildGlobToExtTask(
         command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
         sourceDir: "src",
         sourceExt: ".txt",
         outputDir: outputDir,
-        outputExt: ".txt.nospace");
+        outputExt: outputExt);
   }
 }
