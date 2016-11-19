@@ -61,6 +61,7 @@
     <Compile Include="Building.cs" />
     <Compile Include="BuildTask.cs" />
     <Compile Include="FileUtils.cs" />
+    <Compile Include="HexUtils.cs" />
     <Compile Include="IBuildContext.cs" />
     <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
