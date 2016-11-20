@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/6u8p65sqh4hka0bk/branch/master?svg=true)](https://ci.appveyor.com/project/urbas/bud-building/branch/master) [![NuGet](https://img.shields.io/nuget/v/Bud.Exec.svg)](https://www.nuget.org/packages/Bud.Exec/)
+[![Build status](https://ci.appveyor.com/api/projects/status/6u8p65sqh4hka0bk/branch/master?svg=true)](https://ci.appveyor.com/project/urbas/bud-building/branch/master)
 
 
 # About
