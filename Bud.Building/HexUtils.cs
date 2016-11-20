@@ -39,11 +39,9 @@ namespace Bud {
       return new string(hexDigits);
     }
 
-    public static int ToNibbleFromHexDigit(char hex) {
+    private static int ToNibbleFromHexDigit(char hex) {
       int val = hex;
       var nibble = val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
-
-      Console.WriteLine($"Hex: {hex}, nibble: {nibble}");
 
       if (nibble < 0 || nibble > 0xf) {
         throw new ArgumentException($"The character '{hex}' is not a valid hexadecimal digit. " +
@@ -52,6 +50,6 @@ namespace Bud {
       return nibble;
     }
 
-    public static char ToHexDigitFromNibble(byte nibble) => (char) (nibble > 9 ? nibble - 10 + 'A' : nibble + '0');
+    private static char ToHexDigitFromNibble(byte nibble) => (char) (nibble > 9 ? nibble - 10 + 'A' : nibble + '0');
   }
 }
