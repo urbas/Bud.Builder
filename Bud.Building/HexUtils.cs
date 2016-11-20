@@ -36,6 +36,16 @@ namespace Bud {
       return arr;
     }
 
+    /// <summary>
+    /// Converts the given byte array to a string of hexadecimal digits.
+    ///
+    /// <para>This method produces an upper-cased string.</para>
+    /// </summary>
+    /// <param name="bytes">the bytes to convert to a string of hexadecimal digits.</param>
+    /// <returns>a string of hexadecimal digits where every pair of charaters corresponds to an element in the
+    /// <paramref name="bytes"/> array.</returns>
+    /// <exception cref="ArgumentNullException">this exception is thrown is the given <paramref name="bytes"/> array
+    /// is <c>null</c>.</exception>
     public static string ToHexStringFromBytes(IReadOnlyList<byte> bytes) {
       if (bytes == null) {
         throw new ArgumentNullException(nameof(bytes), "Cannot convert a null array of bytes.");
