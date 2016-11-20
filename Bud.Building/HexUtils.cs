@@ -6,10 +6,23 @@ namespace Bud {
   /// This class contains static methods that convert between hexadecimal strings and byte arrays.
   /// </summary>
   public static class HexUtils {
+    /// <summary>
+    /// Converts a string of hexadecimal digits into an array of bytes.
+    ///
+    /// <para>This method is case-insensitive.</para>
+    /// </summary>
+    /// <param name="hex">the string of hexadecimal digits to convert to bytes.</param>
+    /// <returns>an array of bytes where every byte corresponds to a pair of hexadecimal digits in the given
+    /// <paramref name="hex"/> string.</returns>
+    /// <exception cref="ArgumentNullException">this exception is thrown if the <paramref name="hex"/> parameter is
+    /// null.</exception>
+    /// <exception cref="ArgumentException">this exception is thrown if the length of the given <paramref name="hex"/>
+    /// string is odd.</exception>
     public static byte[] ToBytesFromHexString(string hex) {
       if (hex == null) {
         throw new ArgumentNullException(nameof(hex), "Cannot convert a null string.");
       }
+
       if ((hex.Length & 1) == 1) {
         throw new ArgumentException("The given string has an odd length. Hex strings must be of even length.",
                                     nameof(hex));
