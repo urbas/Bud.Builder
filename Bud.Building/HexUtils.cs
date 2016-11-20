@@ -23,6 +23,22 @@ namespace Bud {
       return arr;
     }
 
+    public static string ToHexStringFromBytes(IReadOnlyList<byte> bytes) {
+      if (bytes == null) {
+        throw new ArgumentNullException(nameof(bytes), "Cannot convert a null array of bytes.");
+      }
+
+      var hexDigits = new char[bytes.Count * 2];
+
+      for (int byteIdx = 0; byteIdx < bytes.Count; ++byteIdx) {
+        var hexxDigitIdx = byteIdx << 1;
+        hexDigits[hexxDigitIdx] = ToHexDigitFromNibble((byte) (bytes[byteIdx] >> 4));
+        hexDigits[hexxDigitIdx + 1] = ToHexDigitFromNibble((byte) (bytes[byteIdx] & 0x0F));
+      }
+
+      return new string(hexDigits);
+    }
+
     public static int ToNibbleFromHexDigit(char hex) {
       int val = hex;
       var nibble = val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
@@ -34,18 +50,6 @@ namespace Bud {
                                     $"Allowed characters: 0-9, a-f, A-F.");
       }
       return nibble;
-    }
-
-    public static string ToHexStringFromBytes(IReadOnlyList<byte> bytes) {
-      var hexDigits = new char[bytes.Count * 2];
-
-      for (int byteIdx = 0; byteIdx < bytes.Count; ++byteIdx) {
-        var hexxDigitIdx = byteIdx << 1;
-        hexDigits[hexxDigitIdx] = ToHexDigitFromNibble((byte) (bytes[byteIdx] >> 4));
-        hexDigits[hexxDigitIdx + 1] = ToHexDigitFromNibble((byte) (bytes[byteIdx] & 0x0F));
-      }
-
-      return new string(hexDigits);
     }
 
     public static char ToHexDigitFromNibble(byte nibble) => (char) (nibble > 9 ? nibble - 10 + 'A' : nibble + '0');
