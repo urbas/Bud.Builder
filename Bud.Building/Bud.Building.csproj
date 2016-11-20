@@ -66,6 +66,7 @@
     <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuildTaskNumberAssigner.cs" />
+    <Compile Include="TaskSigner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

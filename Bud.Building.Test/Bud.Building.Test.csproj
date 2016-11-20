@@ -64,6 +64,7 @@
     <Compile Include="FilesByExtInDirTest.cs" />
     <Compile Include="HexUtilsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskSignerTest.cs" />
     <Compile Include="TesterAppPath.cs" />
   </ItemGroup>
   <ItemGroup>
