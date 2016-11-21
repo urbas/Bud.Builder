@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Math;
 
 namespace Bud {
   /// <summary>
@@ -22,15 +23,45 @@ namespace Bud {
     private readonly SHA256 hashAlgorithm;
     private readonly byte[] buffer;
 
-    public TaskSigner() {
-      buffer = new byte[1 << 15];
+    public TaskSigner(byte[] buffer = null) {
+      if (buffer == null) {
+        this.buffer = new byte[1 << 15];
+      } else {
+        if (buffer.Length < 4) {
+          throw new ArgumentException("The buffer must have at least 4 bytes.", nameof(buffer));
+        }
+        this.buffer = buffer;
+      }
       hashAlgorithm = SHA256.Create();
       hashAlgorithm.Initialize();
     }
 
     public TaskSigner Digest(string str) {
-      var bytes = Encoding.UTF8.GetBytes(str);
-      hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+      var maxCharCount = buffer.Length / 4;
+      var strLength = str.Length;
+      for (int charsDigested = 0; charsDigested < strLength; charsDigested += maxCharCount) {
+        var bytes = Encoding.UTF8.GetBytes(str, charsDigested, Min(maxCharCount, strLength - charsDigested), buffer, 0);
+        hashAlgorithm.TransformBlock(buffer, 0, bytes, null, 0);
+      }
+      return this;
+    }
+
+    public TaskSigner DigestSources(IEnumerable<string> sources) {
+      foreach (var source in sources) {
+        DigestSource(source);
+      }
+      return this;
+    }
+
+    public TaskSigner DigestSource(string file) {
+      Digest(file);
+      using (var fileStream = File.OpenRead(file)) {
+        int readBytes;
+        do {
+          readBytes = fileStream.Read(buffer, 0, buffer.Length);
+          hashAlgorithm.TransformBlock(buffer, 0, readBytes, buffer, 0);
+        } while (readBytes == buffer.Length);
+      }
       return this;
     }
 
@@ -46,26 +77,6 @@ namespace Bud {
           throw new Exception($"The hash has not yet been calculated. Call '{nameof(Finish)}' to calculate the hash.");
         }
         return hash;
-      }
-    }
-
-    public void DigestSources(IEnumerable<string> sources) {
-      var buffer = new byte[1 << 15];
-      var hashAlgorithm = SHA256.Create();
-      hashAlgorithm.Initialize();
-      foreach (var source in sources) {
-        DigestSource(hashAlgorithm, source, buffer);
-      }
-      hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-    }
-
-    private static void DigestSource(ICryptoTransform digest, string file, byte[] buffer) {
-      using (var fileStream = File.OpenRead(file)) {
-        int readBytes;
-        do {
-          readBytes = fileStream.Read(buffer, 0, buffer.Length);
-          digest.TransformBlock(buffer, 0, readBytes, buffer, 0);
-        } while (readBytes == buffer.Length);
       }
     }
   }
