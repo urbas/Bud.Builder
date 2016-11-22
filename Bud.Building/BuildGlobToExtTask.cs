@@ -138,7 +138,7 @@ namespace Bud {
                                           string baseDir) {
       var digest = new TaskSigner().DigestSources(sources).Finish().Hash;
       var taskSignaturesDir = Path.Combine(baseDir, "task_signatures");
-      var hexDigest = ToHex(digest);
+      var hexDigest = HexUtils.ToHexStringFromBytes(digest);
       var taskSignatureFile = Path.Combine(taskSignaturesDir, hexDigest);
       if (expectedOutputFiles.All(File.Exists) && IsTaskUpToDate(taskSignatureFile, digest)) {
         return false;
@@ -150,19 +150,5 @@ namespace Bud {
 
     private static bool IsTaskUpToDate(string signatureFile, IEnumerable<byte> digest)
       => File.Exists(signatureFile) && File.ReadAllBytes(signatureFile).SequenceEqual(digest);
-
-    private static string ToHex(byte[] bytes) {
-      var hexDigits = new char[bytes.Length * 2];
-
-      for (int byteIdx = 0; byteIdx < bytes.Length; ++byteIdx) {
-        var hexxDigitIdx = byteIdx << 1;
-        hexDigits[hexxDigitIdx] = NibbleToHexDigit((byte) (bytes[byteIdx] >> 4));
-        hexDigits[hexxDigitIdx + 1] = NibbleToHexDigit((byte) (bytes[byteIdx] & 0x0F));
-      }
-
-      return new string(hexDigits);
-    }
-
-    private static char NibbleToHexDigit(byte nibble) => (char) (nibble > 9 ? nibble - 10 + 'A' : nibble + '0');
   }
 }
