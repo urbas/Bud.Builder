@@ -47,8 +47,5 @@ namespace Bud {
       }
     }
 
-    [Test]
-    [Ignore("TODO: Implement")]
-    public void Hash_of_foo_and_bar_should_not_equal_hash_of_foobar() {}
   }
 }
