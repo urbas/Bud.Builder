@@ -136,7 +136,7 @@ namespace Bud {
     private static bool IsExecutionNeeded(IEnumerable<string> sources,
                                           IEnumerable<string> expectedOutputFiles,
                                           string baseDir) {
-      var digest = DigestSources(sources);
+      var digest = new TaskSigner().DigestSources(sources).Finish().Hash;
       var taskSignaturesDir = Path.Combine(baseDir, "task_signatures");
       var hexDigest = ToHex(digest);
       var taskSignatureFile = Path.Combine(taskSignaturesDir, hexDigest);
@@ -146,27 +146,6 @@ namespace Bud {
       Directory.CreateDirectory(taskSignaturesDir);
       File.WriteAllBytes(taskSignatureFile, digest);
       return true;
-    }
-
-    private static byte[] DigestSources(IEnumerable<string> sources) {
-      var buffer = new byte[1 << 14];
-      var hashAlgorithm = SHA256.Create();
-      hashAlgorithm.Initialize();
-      foreach (var source in sources) {
-        DigestSource(hashAlgorithm, source, buffer);
-      }
-      hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-      return hashAlgorithm.Hash;
-    }
-
-    private static void DigestSource(ICryptoTransform digest, string file, byte[] buffer) {
-      using (var fileStream = File.OpenRead(file)) {
-        int readBytes;
-        do {
-          readBytes = fileStream.Read(buffer, 0, buffer.Length);
-          digest.TransformBlock(buffer, 0, readBytes, buffer, 0);
-        } while (readBytes == buffer.Length);
-      }
     }
 
     private static bool IsTaskUpToDate(string signatureFile, IEnumerable<byte> digest)
