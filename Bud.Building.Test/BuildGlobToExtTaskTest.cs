@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using static Bud.Building;
@@ -135,7 +136,7 @@ namespace Bud {
         dir.CreateFile("  foo  ", "src", "foo.txt");
         var expectedOutput = dir.CreateFile("foo", "foo.expected");
 
-        RunBuild(new []{TrimTxtFiles(outputExt: ".nospace1"), TrimTxtFiles(outputExt: ".nospace2")},
+        RunBuild(new[] {TrimTxtFiles(outputExt: ".nospace1"), TrimTxtFiles(outputExt: ".nospace2")},
                  stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(expectedOutput, dir.CreatePath("build", "foo.nospace1"));
@@ -144,11 +145,21 @@ namespace Bud {
     }
 
     private static BuildGlobToExtTask TrimTxtFiles(string outputExt = ".txt.nospace", string outputDir = "build")
-      => new BuildGlobToExtTask(
-        command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
-        sourceDir: "src",
-        sourceExt: ".txt",
-        outputDir: outputDir,
-        outputExt: outputExt);
+      => new BuildGlobToExtTask(command: ctx => TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir),
+                                sourceDir: "src",
+                                sourceExt: ".txt",
+                                outputDir: outputDir,
+                                outputExt: outputExt);
+
+    private static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir) {
+      var rootDirUri = new Uri($"{rootDir}/");
+      foreach (var sourceFile in sourceFiles) {
+        var content = File.ReadAllText(sourceFile).Trim();
+        var relativeUri = rootDirUri.MakeRelativeUri(new Uri(sourceFile));
+        var combine = Path.Combine(outDir, $"{relativeUri}.nospace");
+        Directory.CreateDirectory(Path.GetDirectoryName(combine));
+        File.WriteAllText(combine, content);
+      }
+    }
   }
 }
