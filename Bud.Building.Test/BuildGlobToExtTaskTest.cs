@@ -88,7 +88,23 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO: To be fixed.")]
+    [Ignore("TODO")]
+    public void Build_tasks_rebuild_old_state() {
+      using (var dir = new TmpDir()) {
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        dir.CreateFile("  foo2  ", "src", "foo.txt");
+        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
+                            dir.CreatePath("build", "foo.txt.nospace"));
+      }
+    }
+
+    [Test]
+    [Ignore("TODO")]
     public void Throw_when_given_conflicting_build_tasks() {
       var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
                                                                 TrimTxtFiles(outputDir: "build"),
@@ -100,7 +116,7 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO: To be fixed.")]
+    [Ignore("TODO")]
     public void Throw_when_one_build_task_builds_into_the_build_dir_of_another() {
       var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
                                                                 TrimTxtFiles(outputDir: "build"),
@@ -113,7 +129,7 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO: To be fixed.")]
+    [Ignore("TODO")]
     public void Allow_tasks_with_same_build_dirs_but_different_output_exts() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
