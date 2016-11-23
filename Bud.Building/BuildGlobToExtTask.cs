@@ -133,10 +133,13 @@ namespace Bud {
                       Path.GetDirectoryName(relativePath),
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
 
-    private static bool IsExecutionNeeded(IEnumerable<string> sources,
-                                          IEnumerable<string> expectedOutputFiles,
-                                          string baseDir) {
-      var digest = new TaskSigner().DigestSources(sources).Finish().Hash;
+    private bool IsExecutionNeeded(IEnumerable<string> sources,
+                                   IEnumerable<string> expectedOutputFiles,
+                                   string baseDir) {
+      var digest = new TaskSigner().DigestSources(sources)
+                                   .Digest(OutputDir)
+                                   .Finish()
+                                   .Hash;
       var taskSignaturesDir = Path.Combine(baseDir, "task_signatures");
       var hexDigest = HexUtils.ToHexStringFromBytes(digest);
       var taskSignatureFile = Path.Combine(taskSignaturesDir, hexDigest);

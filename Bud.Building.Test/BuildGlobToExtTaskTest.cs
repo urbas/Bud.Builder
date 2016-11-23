@@ -71,7 +71,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO: To be fixed.")]
     public void Build_tasks_with_same_sources_do_not_interfere() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
