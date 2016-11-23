@@ -51,6 +51,8 @@ namespace Bud {
   ///   </para>
   /// </remarks>
   public class BuildGlobToExtTask : BuildTask {
+    private const string TaskSignaturesDirName = "task_signatures";
+
     /// <summary>
     ///   This delegate performs the actual build.
     /// </summary>
@@ -114,10 +116,15 @@ namespace Bud {
 
       DeleteExtraneousFiles(outputDir, expectedOutputFiles);
 
-      if (IsExecutionNeeded(sources, expectedOutputFiles, ctx.BaseDir)) {
+      var taskSignature = CalculateTaskSignature(sources);
+
+      Action command = () => {
         var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
         Command(buildGlobToExtContext);
-      }
+      };
+
+      // NOTE: Maybe move this method into ctx.
+      InvokeIfNeeded(command, expectedOutputFiles, taskSignature, Path.Combine(ctx.BaseDir, TaskSignaturesDirName));
     }
 
     private void DeleteExtraneousFiles(string outputDir, ICollection<string> expectedOutputFiles) {
@@ -133,25 +140,23 @@ namespace Bud {
                       Path.GetDirectoryName(relativePath),
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
 
-    private bool IsExecutionNeeded(IEnumerable<string> sources,
-                                   IEnumerable<string> expectedOutputFiles,
-                                   string baseDir) {
-      var digest = new TaskSigner().DigestSources(sources)
-                                   .Digest(OutputDir)
-                                   .Finish()
-                                   .Hash;
-      var taskSignaturesDir = Path.Combine(baseDir, "task_signatures");
-      var hexDigest = HexUtils.ToHexStringFromBytes(digest);
-      var taskSignatureFile = Path.Combine(taskSignaturesDir, hexDigest);
-      if (expectedOutputFiles.All(File.Exists) && IsTaskUpToDate(taskSignatureFile, digest)) {
-        return false;
+    private static void InvokeIfNeeded(Action command, IEnumerable<string> expectedOutputFiles, byte[] taskSignature,
+                                       string signaturesDir) {
+      var hexDigest = HexUtils.ToHexStringFromBytes(taskSignature);
+
+      var taskSignatureFile = Path.Combine(signaturesDir, hexDigest);
+
+      if (expectedOutputFiles.All(File.Exists) && File.Exists(taskSignatureFile)) {
+        return;
       }
-      Directory.CreateDirectory(taskSignaturesDir);
-      File.WriteAllBytes(taskSignatureFile, digest);
-      return true;
+
+      command();
+
+      Directory.CreateDirectory(signaturesDir);
+      File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
     }
 
-    private static bool IsTaskUpToDate(string signatureFile, IEnumerable<byte> digest)
-      => File.Exists(signatureFile) && File.ReadAllBytes(signatureFile).SequenceEqual(digest);
+    private byte[] CalculateTaskSignature(IEnumerable<string> sources)
+      => new TaskSigner().DigestSources(sources).Digest(OutputDir).Finish().Hash;
   }
 }
