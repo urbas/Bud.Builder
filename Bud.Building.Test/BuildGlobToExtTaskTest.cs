@@ -89,7 +89,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void Build_tasks_rebuild_old_state() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
