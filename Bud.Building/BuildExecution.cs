@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -6,8 +7,9 @@ using System.Linq;
 
 namespace Bud {
   internal static class BuildExecution {
-    private const string BuildMetaDirName = ".bud";
-    
+    public const string BuildMetaDirName = ".bud";
+    public const string TaskSignaturesDirName = "task_signatures";
+
     internal static void RunBuild(IEnumerable<BuildTask> tasks,
                                   TextWriter stdout,
                                   string baseDir,
@@ -19,9 +21,15 @@ namespace Bud {
       baseDir = baseDir ?? Directory.GetCurrentDirectory();
       metaDir = metaDir ?? Path.Combine(baseDir, BuildMetaDirName);
       var task2TaskGraphs = new Dictionary<BuildTask, TaskGraph>();
+      var signatures2Tasks = new ConcurrentDictionary<string, BuildTask>();
       var builtTaskGraphs = buildTasks.Select(task => ToTaskGraph(task2TaskGraphs, stdout, task, taskNumberAssigner,
-                                                                  buildStopwatch, baseDir, metaDir));
+                                                                  buildStopwatch, baseDir, metaDir, signatures2Tasks));
       new TaskGraph(builtTaskGraphs).Run();
+      var taskSignaturesDir = Path.Combine(baseDir, TaskSignaturesDirName);
+      FileUtils.DeleteExtraneousFiles(taskSignaturesDir,
+                                      new HashSet<string>(signatures2Tasks
+                                                            .Keys
+                                                            .Select(signature => Path.Combine(taskSignaturesDir, signature))));
     }
 
     private static int CountTasks(ICollection<BuildTask> tasks)
@@ -33,12 +41,13 @@ namespace Bud {
                                          BuildTaskNumberAssigner buildTaskNumberAssigner,
                                          Stopwatch buildStopwatch,
                                          string baseDir,
-                                         string metaDir) {
+                                         string metaDir,
+                                         ConcurrentDictionary<string, BuildTask> signatures2Tasks) {
       TaskGraph taskGraph;
       return task2TaskGraphs.TryGetValue(buildTask, out taskGraph) ?
                taskGraph :
                CreateTaskGraph(task2TaskGraphs, stdout, buildTask, buildTaskNumberAssigner, buildStopwatch, baseDir,
-                               metaDir);
+                               metaDir, signatures2Tasks);
     }
 
     private static TaskGraph CreateTaskGraph(IDictionary<BuildTask, TaskGraph> task2TaskGraphs,
@@ -47,18 +56,18 @@ namespace Bud {
                                              BuildTaskNumberAssigner buildTaskNumberAssigner,
                                              Stopwatch buildStopwatch,
                                              string baseDir,
-                                             string metaDir) {
+                                             string metaDir,
+                                             ConcurrentDictionary<string, BuildTask> signatures2Tasks) {
       var taskGraphs = buildTask.Dependencies
                                 .Select(dependencyBuildTask => ToTaskGraph(task2TaskGraphs, stdout, dependencyBuildTask,
                                                                            buildTaskNumberAssigner, buildStopwatch, baseDir,
-                                                                           metaDir))
+                                                                           metaDir, new ConcurrentDictionary<string, BuildTask>()))
                                 .ToImmutableArray();
       var buildContext = new BuildContext(stdout, buildStopwatch, buildTaskNumberAssigner.AssignNumber(),
-                                          buildTaskNumberAssigner.TotalTasks, baseDir);
+                                          buildTaskNumberAssigner.TotalTasks, baseDir, signatures2Tasks);
       var taskGraph = new TaskGraph(() => buildTask.Execute(buildContext), taskGraphs);
       task2TaskGraphs.Add(buildTask, taskGraph);
       return taskGraph;
     }
-    
   }
 }

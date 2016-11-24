@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Bud {
@@ -6,18 +8,21 @@ namespace Bud {
   ///   Provides a bunch of information to each task.
   /// </summary>
   public class BuildContext : IBuildContext {
+    private readonly ConcurrentDictionary<string, BuildTask> signatures2Tasks;
+
     /// <param name="stdout"><see cref="Stdout"/></param>
     /// <param name="buildStopwatch"><see cref="BuildStopwatch"/></param>
     /// <param name="thisTaskNumber"><see cref="ThisTaskNumber"/></param>
     /// <param name="totalTasks"><see cref="TotalTasks"/></param>
     /// <param name="baseDir"><see cref="BaseDir"/></param>
     public BuildContext(TextWriter stdout, Stopwatch buildStopwatch, int thisTaskNumber, int totalTasks,
-                        string baseDir) {
+                        string baseDir, ConcurrentDictionary<string, BuildTask> signatures2Tasks) {
       Stdout = stdout;
       BuildStopwatch = buildStopwatch;
       ThisTaskNumber = thisTaskNumber;
       TotalTasks = totalTasks;
       BaseDir = baseDir;
+      this.signatures2Tasks = signatures2Tasks;
     }
 
     /// <summary>
@@ -57,5 +62,11 @@ namespace Bud {
     ///   This is the directory where the build was executed.
     /// </summary>
     public string BaseDir { get; }
+
+    public void MarkTaskFinished(BuildTask buildTask, string taskSignature) {
+      signatures2Tasks.GetOrAdd(taskSignature, buildTask);
+    }
+
+    public string TaskSignaturesDir => Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
   }
 }

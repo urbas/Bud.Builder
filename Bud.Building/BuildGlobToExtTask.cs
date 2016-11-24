@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using static Bud.FileUtils;
 
 namespace Bud {
@@ -51,8 +49,6 @@ namespace Bud {
   ///   </para>
   /// </remarks>
   public class BuildGlobToExtTask : BuildTask {
-    private const string TaskSignaturesDirName = "task_signatures";
-
     /// <summary>
     ///   This delegate performs the actual build.
     /// </summary>
@@ -114,9 +110,9 @@ namespace Bud {
         sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
                .Select(relativePath => ToOutputPath(outputDir, relativePath)));
 
-      DeleteExtraneousFiles(outputDir, expectedOutputFiles);
+      DeleteExtraneousFiles(outputDir, expectedOutputFiles, OutputExt);
 
-      var taskSignature = CalculateTaskSignature(sources);
+      var hexSignature = HexUtils.ToHexStringFromBytes(CalculateTaskSignature(sources));
 
       Action command = () => {
         var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
@@ -124,15 +120,10 @@ namespace Bud {
       };
 
       // NOTE: Maybe move this method into ctx.
-      InvokeIfNeeded(command, expectedOutputFiles, taskSignature, Path.Combine(ctx.BaseDir, TaskSignaturesDirName));
-    }
+      InvokeIfNeeded(command, expectedOutputFiles, ctx.TaskSignaturesDir,
+                     hexSignature);
 
-    private void DeleteExtraneousFiles(string outputDir, ICollection<string> expectedOutputFiles) {
-      foreach (var outputFile in FindFiles(outputDir, OutputExt)) {
-        if (!expectedOutputFiles.Contains(outputFile)) {
-          File.Delete(outputFile);
-        }
-      }
+      ctx.MarkTaskFinished(this, hexSignature);
     }
 
     private string ToOutputPath(string outputDir, string relativePath)
@@ -140,10 +131,8 @@ namespace Bud {
                       Path.GetDirectoryName(relativePath),
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
 
-    private static void InvokeIfNeeded(Action command, IEnumerable<string> expectedOutputFiles, byte[] taskSignature,
-                                       string signaturesDir) {
-      var hexDigest = HexUtils.ToHexStringFromBytes(taskSignature);
-
+    private static void InvokeIfNeeded(Action command, IEnumerable<string> expectedOutputFiles, string signaturesDir,
+                                       string hexDigest) {
       var taskSignatureFile = Path.Combine(signaturesDir, hexDigest);
 
       if (expectedOutputFiles.All(File.Exists) && File.Exists(taskSignatureFile)) {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 
 namespace Bud {
@@ -10,7 +11,7 @@ namespace Bud {
     ///   Finds all files in the directory <paramref name="dir"/> that have the extension <paramref name="ext"/>.
     /// </summary>
     /// <returns>an array of found files.</returns>
-    public static ImmutableArray<string> FindFiles(string dir, string ext) {
+    public static ImmutableArray<string> FindFiles(string dir, string ext = "") {
       if (Directory.Exists(dir)) {
         return Directory.EnumerateFiles(dir, $"*{ext}", SearchOption.AllDirectories)
                         .ToImmutableArray();
@@ -29,6 +30,14 @@ namespace Bud {
         return baseDir ?? Directory.GetCurrentDirectory();
       }
       return Path.Combine(baseDir ?? Directory.GetCurrentDirectory(), dir);
+    }
+
+    public static void DeleteExtraneousFiles(string dir, ICollection<string> allowedFiles, string fileExtension = "") {
+      foreach (var outputFile in FindFiles(dir, fileExtension)) {
+        if (!allowedFiles.Contains(outputFile)) {
+          File.Delete(outputFile);
+        }
+      }
     }
   }
 }
