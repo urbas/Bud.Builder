@@ -101,6 +101,8 @@ namespace Bud {
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
                             dir.CreatePath("build", "foo.txt.nospace"));
       }
+      // TODO: Add a test where a task fails, which prevents the deletion of the old state, and then a fresh task
+      // doesn't rebuild
     }
 
     [Test]
