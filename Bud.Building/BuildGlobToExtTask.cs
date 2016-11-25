@@ -146,6 +146,6 @@ namespace Bud {
     }
 
     private byte[] CalculateTaskSignature(IEnumerable<string> sources)
-      => new TaskSigner().DigestSources(sources).Digest(OutputDir).Finish().Hash;
+      => new TaskSigner().DigestSources(sources).Digest(OutputDir).Finish().Signature;
   }
 }
