@@ -19,7 +19,6 @@ namespace Bud {
   /// </para>
   /// </remarks>
   public class TaskSigner {
-    private static readonly UTF32Encoding Encoding = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
     private byte[] hash;
     private readonly SHA256 hashAlgorithm;
     private readonly byte[] buffer;
@@ -41,9 +40,14 @@ namespace Bud {
       var blockMaxCharCount = buffer.Length >> 2;
       var strLength = str.Length;
       for (int charsDigested = 0; charsDigested < strLength; charsDigested += blockMaxCharCount) {
-        var bytes = Encoding.GetBytes(str, charsDigested, Min(blockMaxCharCount, strLength - charsDigested), buffer, 0);
+        var bytes = Encoding.UTF32.GetBytes(str, charsDigested, Min(blockMaxCharCount, strLength - charsDigested), buffer, 0);
         hashAlgorithm.TransformBlock(buffer, 0, bytes, null, 0);
       }
+      return this;
+    }
+
+    public TaskSigner Digest(byte[] bytes) {
+        hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
       return this;
     }
 

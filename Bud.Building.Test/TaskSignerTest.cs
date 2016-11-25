@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using NUnit.Framework;
 using static Bud.HexUtils;
 using static NUnit.Framework.Assert;
@@ -22,13 +23,13 @@ namespace Bud {
 
     [Test]
     public void Hash_of_string_foo()
-      => AreEqual(ToBytesFromHexString("2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"),
+      => AreEqual(ToBytesFromHexString("3d762bea849db8b2a3b5c72e974dfad4108aee487c35f150847b49c656ff1ec8"),
                   new TaskSigner().Digest("foo").Finish().Hash);
 
     [Test]
     public void Hash_of_string_foo_with_small_buffer()
-      => AreEqual(ToBytesFromHexString("e13f95bc2b118d3173ea119df73ef75ebbae9d595d9a236ec6aad3d392c5d405"),
-                  new TaskSigner(new byte[4]).Digest("foo bar ™ glar har").Finish().Hash);
+      => AreEqual(ToBytesFromHexString("4c73219fb915977361405854a995bb01c9d2e02a68a5506f5dd3dee924143ec1"),
+                  new TaskSigner(new byte[7]).Digest("foo bar ™ glar har").Finish().Hash);
 
     [Test]
     public void Hash_throws_when_buffer_smaller_than_4() {
@@ -42,7 +43,8 @@ namespace Bud {
       using (var dir = new TmpDir()) {
         var fooFile = dir.CreateFile("9001", "foo.txt");
         var barFile = dir.CreateFile("42", "bar.txt");
-        AreEqual(new TaskSigner().Digest(fooFile).Digest("9001").Digest(barFile).Digest("42").Finish().Hash,
+        AreEqual(new TaskSigner().Digest(fooFile).Digest(Encoding.UTF8.GetBytes("9001"))
+                                 .Digest(barFile).Digest(Encoding.UTF8.GetBytes("42")).Finish().Hash,
                  new TaskSigner().DigestSources(new[] {fooFile, barFile}).Finish().Hash);
       }
     }
