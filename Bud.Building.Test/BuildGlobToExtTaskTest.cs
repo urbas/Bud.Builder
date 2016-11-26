@@ -114,8 +114,8 @@ namespace Bud {
                                                                          },
                                                                          stdout: new StringWriter(),
                                                                          baseDir: dir.Path));
-        Assert.AreEqual("Clashing build specification. Found duplicate tasks: 'src/**/*.txt -> build/**/*.txt.nospace' " +
-                        "and 'src/**/*.txt -> build/**/*.txt.nospace'.",
+        Assert.AreEqual("Clashing build specification. Found duplicate tasks: " +
+                        "'src/**/*.txt -> build/**/*.txt.nospace' and 'src/**/*.txt -> build/**/*.txt.nospace'.",
                         exception.InnerExceptions[0].Message);
       }
     }
