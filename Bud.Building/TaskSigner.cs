@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 using static System.Math;
+using static System.Text.Encoding;
 
 namespace Bud {
   /// <summary>
@@ -49,7 +49,7 @@ namespace Bud {
       var blockMaxCharCount = buffer.Length >> 2;
       var strLength = str.Length;
       for (int charsDigested = 0; charsDigested < strLength; charsDigested += blockMaxCharCount) {
-        var bytes = Encoding.UTF32.GetBytes(str, charsDigested, Min(blockMaxCharCount, strLength - charsDigested), buffer, 0);
+        var bytes = UTF32.GetBytes(str, charsDigested, Min(blockMaxCharCount, strLength - charsDigested), buffer, 0);
         hashAlgorithm.TransformBlock(buffer, 0, bytes, null, 0);
       }
       return this;

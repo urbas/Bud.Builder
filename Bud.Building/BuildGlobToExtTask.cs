@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static Bud.FileUtils;
+using static Bud.HexUtils;
 
 namespace Bud {
   /// <summary>This build task is suitable for builders/compilers that take multiple source files
@@ -112,16 +113,14 @@ namespace Bud {
 
       DeleteExtraneousFiles(outputDir, expectedOutputFiles, OutputExt);
 
-      var hexSignature = HexUtils.ToHexStringFromBytes(CalculateTaskSignature(sources));
-
       Action command = () => {
         var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
         Command(buildGlobToExtContext);
       };
 
+      var hexSignature = ToHexStringFromBytes(CalculateTaskSignature(sources));
       // NOTE: Maybe move this method into ctx.
       InvokeIfNeeded(command, expectedOutputFiles, ctx.TaskSignaturesDir, hexSignature);
-
       ctx.MarkTaskFinished(this, hexSignature);
     }
 
