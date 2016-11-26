@@ -120,8 +120,7 @@ namespace Bud {
 
       var hexSignature = ToHexStringFromBytes(CalculateTaskSignature(sources));
       // NOTE: Maybe move this method into ctx.
-      InvokeIfNeeded(command, expectedOutputFiles, ctx.TaskSignaturesDir, hexSignature);
-      ctx.MarkTaskFinished(this, hexSignature);
+      InvokeIfNeeded(ctx, command, expectedOutputFiles, hexSignature);
     }
 
     private string ToOutputPath(string outputDir, string relativePath)
@@ -129,17 +128,18 @@ namespace Bud {
                       Path.GetDirectoryName(relativePath),
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
 
-    private static void InvokeIfNeeded(Action command, IEnumerable<string> expectedOutputFiles, string signaturesDir,
+    private void InvokeIfNeeded(BuildContext ctx, Action command, IEnumerable<string> expectedOutputFiles,
                                        string hexDigest) {
-      var taskSignatureFile = Path.Combine(signaturesDir, hexDigest);
-
+      var taskSignatureFile = Path.Combine(ctx.TaskSignaturesDir, hexDigest);
       if (expectedOutputFiles.All(File.Exists) && File.Exists(taskSignatureFile)) {
+        ctx.MarkTaskFinished(this, hexDigest);
         return;
       }
 
       command();
 
-      Directory.CreateDirectory(signaturesDir);
+      ctx.MarkTaskFinished(this, hexDigest);
+      Directory.CreateDirectory(ctx.TaskSignaturesDir);
       File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
     }
 

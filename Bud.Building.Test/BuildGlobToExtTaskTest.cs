@@ -108,12 +108,6 @@ namespace Bud {
     [Test]
     public void Throw_when_given_conflicting_build_tasks() {
       using (var dir = new TmpDir()) {
-        RunBuild(new[] {
-                   TrimTxtFiles(outputDir: "build"),
-                   TrimTxtFiles(outputDir: "build")
-                 },
-                 stdout: new StringWriter(),
-                 baseDir: dir.Path);
         var exception = Assert.Throws<AggregateException>(() => RunBuild(new[] {
                                                                            TrimTxtFiles(outputDir: "build"),
                                                                            TrimTxtFiles(outputDir: "build")
