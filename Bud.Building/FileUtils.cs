@@ -32,6 +32,16 @@ namespace Bud {
       return Path.Combine(baseDir ?? Directory.GetCurrentDirectory(), dir);
     }
 
+    /// <summary>
+    /// Deletes files in the directory with the given file extension that are not in the list of
+    /// <paramref name="allowedFiles"/>.
+    /// </summary>
+    /// <param name="dir">the directory from which to delete files.</param>
+    /// <param name="allowedFiles">the list of only allowed files in the directory. The paths in this collection
+    /// should be absolute. This method uses the <see cref="ICollection{T}.Contains"/> method to check whether
+    /// a path is allowed.</param>
+    /// <param name="fileExtension">the extension the files to delete should match. Other files will not be
+    /// touched.</param>
     public static void DeleteExtraneousFiles(string dir, ICollection<string> allowedFiles, string fileExtension = "") {
       foreach (var outputFile in FindFiles(dir, fileExtension)) {
         if (!allowedFiles.Contains(outputFile)) {
