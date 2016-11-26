@@ -143,6 +143,8 @@ namespace Bud {
       File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
     }
 
+    public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
+
     private byte[] CalculateTaskSignature(IEnumerable<string> sources)
       => new TaskSigner().DigestSources(sources).Digest(OutputDir).Finish().Signature;
   }

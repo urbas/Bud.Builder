@@ -106,15 +106,18 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void Throw_when_given_conflicting_build_tasks() {
-      var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
-                                                                TrimTxtFiles(outputDir: "build"),
-                                                                TrimTxtFiles(outputDir: "build")
-                                                              }));
-      Assert.That(exception.Message,
-                  Contains.Substring("Invalid build specification.")
-                          .And.Contains("Found duplicate tasks 'src/**/*.txt -> build/**/*.txt.nospace'."));
+      using (var dir = new TmpDir()) {
+        var exception = Assert.Throws<AggregateException>(() => RunBuild(new[] {
+                                                                           TrimTxtFiles(outputDir: "build"),
+                                                                           TrimTxtFiles(outputDir: "build")
+                                                                         },
+                                                                         stdout: new StringWriter(),
+                                                                         baseDir: dir.Path));
+        Assert.AreEqual("Clashing build specification. Found duplicate tasks: 'src/**/*.txt -> build/**/*.txt.nospace' " +
+                        "and 'src/**/*.txt -> build/**/*.txt.nospace'.",
+                        exception.InnerExceptions[0].Message);
+      }
     }
 
     [Test]

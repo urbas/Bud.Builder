@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -64,7 +65,10 @@ namespace Bud {
     public string BaseDir { get; }
 
     public void MarkTaskFinished(BuildTask buildTask, string taskSignature) {
-      signatures2Tasks.GetOrAdd(taskSignature, buildTask);
+      var storedTask = signatures2Tasks.GetOrAdd(taskSignature, buildTask);
+      if (storedTask != buildTask) {
+        throw new Exception($"Clashing build specification. Found duplicate tasks: '{storedTask}' and '{buildTask}'.");
+      }
     }
 
     public string TaskSignaturesDir => Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
