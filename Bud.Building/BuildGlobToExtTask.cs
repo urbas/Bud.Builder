@@ -120,8 +120,7 @@ namespace Bud {
       };
 
       // NOTE: Maybe move this method into ctx.
-      InvokeIfNeeded(command, expectedOutputFiles, ctx.TaskSignaturesDir,
-                     hexSignature);
+      InvokeIfNeeded(command, expectedOutputFiles, ctx.TaskSignaturesDir, hexSignature);
 
       ctx.MarkTaskFinished(this, hexSignature);
     }
