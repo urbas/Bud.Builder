@@ -123,14 +123,18 @@ namespace Bud {
     [Test]
     [Ignore("TODO")]
     public void Throw_when_one_build_task_builds_into_the_build_dir_of_another() {
-      var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
-                                                                TrimTxtFiles(outputDir: "build"),
-                                                                TrimTxtFiles(outputDir: "build/foo")
-                                                              }));
-      Assert.That(exception.Message,
-                  Contains.Substring("Invalid build specification.")
-                          .And.Contains("Found a task that produces files 'build/**/*.txt.nospace' and another that " +
-                                        "produces files 'build/foo/**/*.txt.nospace'."));
+      using (var dir = new TmpDir()) {
+        var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
+                                                                  TrimTxtFiles(outputDir: "build"),
+                                                                  TrimTxtFiles(outputDir: "build/foo")
+                                                                },
+                                                                stdout: new StringWriter(),
+                                                                baseDir: dir.Path));
+        Assert.That(exception.Message,
+                    Contains.Substring("Invalid build specification.")
+                            .And.Contains("Found a task that produces files 'build/**/*.txt.nospace' and another that " +
+                                          "produces files 'build/foo/**/*.txt.nospace'."));
+      }
     }
 
     [Test]
