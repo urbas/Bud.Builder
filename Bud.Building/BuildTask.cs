@@ -7,16 +7,21 @@ namespace Bud {
   /// </summary>
   public abstract class BuildTask {
     /// <summary>
-    ///   Sets the dependencies of this build task.
+    ///   Initializes a build task without dependencies.
+    /// </summary>
+    protected BuildTask() : this(null) {}
+
+    /// <summary>
+    ///   Initializes a build task with the given the dependencies.
     /// </summary>
     /// <param name="dependencies">these tasks will be executed before this task.</param>
-    protected BuildTask(IEnumerable<BuildTask> dependencies = null)
+    protected BuildTask(IEnumerable<BuildTask> dependencies)
       : this(dependencies == null ?
                ImmutableArray<BuildTask>.Empty :
                ImmutableArray.CreateRange(dependencies)) {}
 
     /// <summary>
-    ///   Sets the dependencies of this build task.
+    ///   Initializes a build task with the given the dependencies.
     /// </summary>
     /// <param name="dependencies">these tasks will be executed before this task.</param>
     protected BuildTask(ImmutableArray<BuildTask> dependencies) {
