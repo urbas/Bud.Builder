@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -24,6 +23,7 @@ namespace Bud {
       TotalTasks = totalTasks;
       BaseDir = baseDir;
       this.signatures2Tasks = signatures2Tasks;
+      TaskSignaturesDir = Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
     }
 
     /// <summary>
@@ -64,13 +64,6 @@ namespace Bud {
     /// </summary>
     public string BaseDir { get; }
 
-    public void MarkTaskFinished(BuildTask buildTask, string taskSignature) {
-      var storedTask = signatures2Tasks.GetOrAdd(taskSignature, buildTask);
-      if (storedTask != buildTask) {
-        throw new Exception($"Clashing build specification. Found duplicate tasks: '{storedTask}' and '{buildTask}'.");
-      }
-    }
-
     /// <summary>
     /// The directory where task signature files will be stored.
     /// </summary>
@@ -78,6 +71,13 @@ namespace Bud {
     /// Task signature files mark the completion of a particular task. An exception will be thrown during the build
     /// if signatures of two tasks are the same.
     /// </remarks>
-    public string TaskSignaturesDir => Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
+    public string TaskSignaturesDir { get; }
+
+    public void MarkTaskFinished(BuildTask buildTask, string taskSignature) {
+      var storedTask = signatures2Tasks.GetOrAdd(taskSignature, buildTask);
+      if (storedTask != buildTask) {
+        throw new Exception($"Clashing build specification. Found duplicate tasks: '{storedTask}' and '{buildTask}'.");
+      }
+    }
   }
 }
