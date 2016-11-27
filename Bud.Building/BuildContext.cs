@@ -71,6 +71,13 @@ namespace Bud {
       }
     }
 
+    /// <summary>
+    /// The directory where task signature files will be stored.
+    /// </summary>
+    /// <remarks>
+    /// Task signature files mark the completion of a particular task. An exception will be thrown during the build
+    /// if signatures of two tasks are the same.
+    /// </remarks>
     public string TaskSignaturesDir => Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
   }
 }

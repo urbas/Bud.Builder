@@ -129,7 +129,7 @@ namespace Bud {
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
 
     private void InvokeIfNeeded(BuildContext ctx, Action command, IEnumerable<string> expectedOutputFiles,
-                                       string hexDigest) {
+                                string hexDigest) {
       var taskSignatureFile = Path.Combine(ctx.TaskSignaturesDir, hexDigest);
       if (expectedOutputFiles.All(File.Exists) && File.Exists(taskSignatureFile)) {
         ctx.MarkTaskFinished(this, hexDigest);
