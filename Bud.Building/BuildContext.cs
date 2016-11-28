@@ -75,6 +75,14 @@ namespace Bud {
     /// </remarks>
     public string TaskSignaturesDir { get; }
 
+    /// <summary>
+    /// Adds the signature and the task into a build-wide dictionary of signatures and corresponding tasks. If the
+    /// signature already exists for a different task, then this method throws an exception.
+    /// </summary>
+    /// <param name="buildTask">the task that successfully finished.</param>
+    /// <param name="taskSignature">the signature of the given <paramref name="buildTask"/>.</param>
+    /// <exception cref="Exception">thrown if another build task with the same signature already finished
+    /// before.</exception>
     public void MarkTaskFinished(BuildTask buildTask, string taskSignature) {
       var storedTask = signatures2Tasks.GetOrAdd(taskSignature, buildTask);
       if (storedTask != buildTask) {
