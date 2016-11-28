@@ -15,6 +15,8 @@ namespace Bud {
     /// <param name="thisTaskNumber"><see cref="ThisTaskNumber"/></param>
     /// <param name="totalTasks"><see cref="TotalTasks"/></param>
     /// <param name="baseDir"><see cref="BaseDir"/></param>
+    /// <param name="signatures2Tasks">a dictionary of signatures and tasks. The signatures uniquely identify
+    /// tasks.</param>
     public BuildContext(TextWriter stdout, Stopwatch buildStopwatch, int thisTaskNumber, int totalTasks,
                         string baseDir, ConcurrentDictionary<string, BuildTask> signatures2Tasks) {
       Stdout = stdout;
