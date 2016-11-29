@@ -138,7 +138,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void Allow_tasks_with_same_build_dirs_but_different_output_exts() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
