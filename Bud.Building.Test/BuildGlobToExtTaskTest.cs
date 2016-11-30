@@ -162,10 +162,14 @@ namespace Bud {
       var rootDirUri = new Uri($"{rootDir}/");
       foreach (var sourceFile in sourceFiles) {
         var content = File.ReadAllText(sourceFile).Trim();
-        var relativeUri = rootDirUri.MakeRelativeUri(new Uri(sourceFile));
-        var combine = Path.Combine(outDir, $"{relativeUri}{outputExt}");
-        Directory.CreateDirectory(Path.GetDirectoryName(combine));
-        File.WriteAllText(combine, content);
+        var relativeSrcPath = rootDirUri.MakeRelativeUri(new Uri(sourceFile)).ToString();
+        var outputFile = Path.Combine(outDir,
+                                      Path.GetDirectoryName(relativeSrcPath),
+                                      Path.GetFileNameWithoutExtension(relativeSrcPath) + outputExt);
+        Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+        Console.WriteLine($"Producing file: {outputFile}");
+
+        File.WriteAllText(outputFile, content);
       }
     }
   }
