@@ -152,18 +152,18 @@ namespace Bud {
     }
 
     private static BuildGlobToExtTask TrimTxtFiles(string outputExt = ".txt.nospace", string outputDir = "build")
-      => new BuildGlobToExtTask(command: ctx => TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir),
+      => new BuildGlobToExtTask(command: ctx => TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir, ctx.OutputExt),
                                 sourceDir: "src",
                                 sourceExt: ".txt",
                                 outputDir: outputDir,
                                 outputExt: outputExt);
 
-    private static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir) {
+    private static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir, string outputExt) {
       var rootDirUri = new Uri($"{rootDir}/");
       foreach (var sourceFile in sourceFiles) {
         var content = File.ReadAllText(sourceFile).Trim();
         var relativeUri = rootDirUri.MakeRelativeUri(new Uri(sourceFile));
-        var combine = Path.Combine(outDir, $"{relativeUri}.nospace");
+        var combine = Path.Combine(outDir, $"{relativeUri}{outputExt}");
         Directory.CreateDirectory(Path.GetDirectoryName(combine));
         File.WriteAllText(combine, content);
       }
