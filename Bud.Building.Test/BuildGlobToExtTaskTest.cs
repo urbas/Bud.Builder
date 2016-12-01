@@ -14,19 +14,22 @@ namespace Bud {
         dir.CreateFile("  foo  ", "src", "foo.txt");
         dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
 
-        var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} --outDir {Arg(ctx.OutputDir)} {Args(ctx.Sources)}"),
+        var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} " +
+                                                                $"--outDir {Arg(ctx.OutputDir)} " +
+                                                                $"--outExt .txt.nospace " +
+                                                                $"{Args(ctx.Sources)}"),
                          sourceDir: "src",
                          sourceExt: ".txt",
                          outputDir: "build",
-                         outputExt: ".nospace");
+                         outputExt: ".txt.nospace");
 
         RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
-                            dir.CreatePath("build", "foo.nospace"));
+                            dir.CreatePath("build", "foo.txt.nospace"));
 
         FileAssert.AreEqual(dir.CreateFile("bar", "bar.expected"),
-                            dir.CreatePath("build", "subdir", "bar.nospace"));
+                            dir.CreatePath("build", "subdir", "bar.txt.nospace"));
       }
     }
 

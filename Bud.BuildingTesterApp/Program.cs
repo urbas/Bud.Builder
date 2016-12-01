@@ -10,7 +10,7 @@ namespace Bud.BuildingTesterApp {
                .MapResult(DoTrim, OnError);
 
     private static int DoTrim(TrimVerb args) {
-      TrimVerb.TrimTxtFiles(args.RootDir, args.SourceFiles, args.OutDir, ".nospace");
+      TrimVerb.TrimTxtFiles(args.RootDir, args.SourceFiles, args.OutDir, args.OutExt);
       return 0;
     }
 

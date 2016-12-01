@@ -16,6 +16,9 @@ namespace Bud.BuildingTesterApp.Options {
                                  "directory.", Required = true)]
     public string OutDir { get; set; }
 
+    [Option("outExt", HelpText = "The extension of output files.", Default = ".nospace")]
+    public string OutExt { get; set; }
+
     [Value(0, MetaName = "SOURCE_FILES", HelpText = "The files to trim.", Default = new string[0])]
     public IEnumerable<string> SourceFiles { get; set; }
 
