@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using CommandLine;
 
 namespace Bud.BuildingTesterApp.Options {
@@ -16,5 +18,20 @@ namespace Bud.BuildingTesterApp.Options {
 
     [Value(0, MetaName = "SOURCE_FILES", HelpText = "The files to trim.", Default = new string[0])]
     public IEnumerable<string> SourceFiles { get; set; }
+
+    public static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir, string outputExt) {
+      var rootDirUri = new Uri($"{rootDir}/");
+      foreach (var sourceFile in sourceFiles) {
+        var content = File.ReadAllText(sourceFile).Trim();
+        var relativeSrcPath = rootDirUri.MakeRelativeUri(new Uri(sourceFile)).ToString();
+        var outputFile = Path.Combine(outDir,
+                                      Path.GetDirectoryName(relativeSrcPath),
+                                      Path.GetFileNameWithoutExtension(relativeSrcPath) + outputExt);
+        Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+        Console.WriteLine($"Producing file: {outputFile}");
+
+        File.WriteAllText(outputFile, content);
+      }
+    }
   }
 }

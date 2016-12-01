@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
+using Bud.BuildingTesterApp.Options;
 using NUnit.Framework;
 using static Bud.Building;
 using static Bud.Exec;
@@ -18,15 +18,15 @@ namespace Bud {
                          sourceDir: "src",
                          sourceExt: ".txt",
                          outputDir: "build",
-                         outputExt: ".txt.nospace");
+                         outputExt: ".nospace");
 
         RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
-                            dir.CreatePath("build", "foo.txt.nospace"));
+                            dir.CreatePath("build", "foo.nospace"));
 
         FileAssert.AreEqual(dir.CreateFile("bar", "bar.expected"),
-                            dir.CreatePath("build", "subdir", "bar.txt.nospace"));
+                            dir.CreatePath("build", "subdir", "bar.nospace"));
       }
     }
 
@@ -152,25 +152,11 @@ namespace Bud {
     }
 
     private static BuildGlobToExtTask TrimTxtFiles(string outputExt = ".txt.nospace", string outputDir = "build")
-      => new BuildGlobToExtTask(command: ctx => TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir, ctx.OutputExt),
+      => new BuildGlobToExtTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
+                                                                      ctx.OutputExt),
                                 sourceDir: "src",
                                 sourceExt: ".txt",
                                 outputDir: outputDir,
                                 outputExt: outputExt);
-
-    private static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir, string outputExt) {
-      var rootDirUri = new Uri($"{rootDir}/");
-      foreach (var sourceFile in sourceFiles) {
-        var content = File.ReadAllText(sourceFile).Trim();
-        var relativeSrcPath = rootDirUri.MakeRelativeUri(new Uri(sourceFile)).ToString();
-        var outputFile = Path.Combine(outDir,
-                                      Path.GetDirectoryName(relativeSrcPath),
-                                      Path.GetFileNameWithoutExtension(relativeSrcPath) + outputExt);
-        Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
-        Console.WriteLine($"Producing file: {outputFile}");
-
-        File.WriteAllText(outputFile, content);
-      }
-    }
   }
 }
