@@ -22,6 +22,11 @@ namespace Bud.BuildingTesterApp.Options {
     [Value(0, MetaName = "SOURCE_FILES", HelpText = "The files to trim.", Default = new string[0])]
     public IEnumerable<string> SourceFiles { get; set; }
 
+    public static int DoTrim(TrimVerb args) {
+      TrimTxtFiles(args.RootDir, args.SourceFiles, args.OutDir, args.OutExt);
+      return 0;
+    }
+
     public static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir, string outputExt) {
       var rootDirUri = new Uri($"{rootDir}/");
       foreach (var sourceFile in sourceFiles) {
