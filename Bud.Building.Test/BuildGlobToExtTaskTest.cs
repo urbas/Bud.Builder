@@ -104,8 +104,36 @@ namespace Bud {
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
                             dir.CreatePath("build", "foo.txt.nospace"));
       }
-      // TODO: Add a test where a task fails, which prevents the deletion of the old state, and then a fresh task
-      // doesn't rebuild
+    }
+
+    [Test]
+    [Ignore("TODO")]
+    public void Half_finished_failed_task_does_not_prevent_subsequent_builds() {
+      using (var dir = new TmpDir()) {
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+
+        dir.CreateFile("  foo2  ", "src", "foo.txt");
+        try {
+          RunBuild(Build(ctx => {
+                           TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir, ctx.OutputExt);
+                           throw new Exception("failure");
+                         },
+                         sourceDir: "src",
+                         sourceExt: "txt",
+                         outputDir: "build",
+                         outputExt: ".txt.nospace"),
+                   stdout: new StringWriter(),
+                   baseDir: dir.Path);
+        } catch (Exception) {
+          // ignored
+        }
+
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"), dir.CreatePath("build", "foo.txt.nospace"));
+      }
     }
 
     [Test]
