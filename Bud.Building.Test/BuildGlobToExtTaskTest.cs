@@ -107,7 +107,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void Half_finished_failed_task_does_not_prevent_subsequent_builds() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");

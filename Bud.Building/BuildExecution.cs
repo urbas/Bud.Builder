@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,12 +25,15 @@ namespace Bud {
       var signatures2Tasks = new ConcurrentDictionary<string, BuildTask>();
       var builtTaskGraphs = buildTasks.Select(task => ToTaskGraph(task2TaskGraphs, stdout, task, taskNumberAssigner,
                                                                   buildStopwatch, baseDir, metaDir, signatures2Tasks));
-      new TaskGraph(builtTaskGraphs).Run();
-      var taskSignaturesDir = Path.Combine(baseDir, TaskSignaturesDirName);
-      FileUtils.DeleteExtraneousFiles(taskSignaturesDir,
-                                      new HashSet<string>(signatures2Tasks
-                                                            .Keys
-                                                            .Select(signature => Path.Combine(taskSignaturesDir, signature))));
+      try {
+        new TaskGraph(builtTaskGraphs).Run();
+      } finally {
+        var taskSignaturesDir = Path.Combine(baseDir, TaskSignaturesDirName);
+        FileUtils.DeleteExtraneousFiles(taskSignaturesDir,
+                                        new HashSet<string>(signatures2Tasks
+                                                              .Keys
+                                                              .Select(signature => Path.Combine(taskSignaturesDir, signature))));
+      }
     }
 
     private static int CountTasks(ICollection<BuildTask> tasks)
