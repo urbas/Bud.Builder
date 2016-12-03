@@ -152,18 +152,27 @@ namespace Bud {
 
     [Test]
     [Ignore("TODO")]
-    public void Throw_when_one_build_task_builds_into_the_build_dir_of_another() {
+    public void Throw_when_two_build_tasks_build_the_same_file() {
       using (var dir = new TmpDir()) {
-        var exception = Assert.Throws<Exception>(() => RunBuild(new[] {
-                                                                  TrimTxtFiles(outputDir: "build"),
-                                                                  TrimTxtFiles(outputDir: "build/foo")
-                                                                },
-                                                                stdout: new StringWriter(),
-                                                                baseDir: dir.Path));
-        Assert.That(exception.Message,
-                    Contains.Substring("Invalid build specification.")
-                            .And.Contains("Found a task that produces files 'build/**/*.txt.nospace' and another that " +
-                                          "produces files 'build/foo/**/*.txt.nospace'."));
+        dir.CreateFile(" foo ", "src1", "foo.txt");
+        dir.CreateFile(" bar ", "src2", "foo.txt");
+
+        TestDelegate testDelegate = () => {
+          RunBuild(new[] {
+                     TrimTxtFiles(sourceDir: "src1", outputDir: "build"),
+                     TrimTxtFiles(sourceDir: "src2",outputDir: "build")
+                   },
+                   stdout: new StringWriter(),
+                   baseDir: dir.Path);
+        };
+
+        var clashingFile = dir.CreatePath("build", "foo.txt.nospace");
+
+
+        var exception = Assert.Throws<Exception>(testDelegate);
+        Assert.AreEqual($"Two builds produce the file '{clashingFile}'. " +
+                        $"Build 'src1/**/*.txt -> build/**/*.txt.nospace' and 'src2/**/*.txt.nospace'.",
+                        exception.Message);
       }
     }
 
@@ -181,11 +190,11 @@ namespace Bud {
       }
     }
 
-    private static BuildGlobToExtTask TrimTxtFiles(string outputExt = ".txt.nospace", string outputDir = "build")
+    private static BuildGlobToExtTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt", string outputExt = ".txt.nospace", string outputDir = "build")
       => new BuildGlobToExtTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
                                                                       ctx.OutputExt),
-                                sourceDir: "src",
-                                sourceExt: ".txt",
+                                sourceDir: sourceDir,
+                                sourceExt: sourceExt,
                                 outputDir: outputDir,
                                 outputExt: outputExt);
   }
