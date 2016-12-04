@@ -151,7 +151,7 @@ namespace Bud {
     }
 
     [Test]
-    public void No_accidantally_conflicting_signatures() {
+    public void No_accidentally_conflicting_signatures() {
       using (var dir = new TmpDir()) {
         Assert.DoesNotThrow(() => RunBuild(new[] {
                                              TrimTxtFiles(outputDir: "build", outputExt: ".out"),
