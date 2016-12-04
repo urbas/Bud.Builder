@@ -152,6 +152,19 @@ namespace Bud {
 
     [Test]
     [Ignore("TODO")]
+    public void No_accidantally_conflicting_signatures() {
+      using (var dir = new TmpDir()) {
+        Assert.DoesNotThrow(() => RunBuild(new[] {
+                                             TrimTxtFiles(outputDir: "build", outputExt: ".out"),
+                                             TrimTxtFiles(outputDir: "bui", outputExt: "ld.out")
+                                           },
+                                           stdout: new StringWriter(),
+                                           baseDir: dir.Path));
+      }
+    }
+
+    [Test]
+    [Ignore("TODO")]
     public void Throw_when_two_build_tasks_build_the_same_file() {
       using (var dir = new TmpDir()) {
         dir.CreateFile(" foo ", "src1", "foo.txt");
@@ -160,7 +173,7 @@ namespace Bud {
         TestDelegate testDelegate = () => {
           RunBuild(new[] {
                      TrimTxtFiles(sourceDir: "src1", outputDir: "build"),
-                     TrimTxtFiles(sourceDir: "src2",outputDir: "build")
+                     TrimTxtFiles(sourceDir: "src2", outputDir: "build")
                    },
                    stdout: new StringWriter(),
                    baseDir: dir.Path);
