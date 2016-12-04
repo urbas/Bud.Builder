@@ -177,6 +177,19 @@ namespace Bud {
 
     [Test]
     [Ignore("TODO")]
+    public void Tasks_with_different_source_ext_are_not_conflicting() {
+      using (var dir = new TmpDir()) {
+        Assert.DoesNotThrow(() => RunBuild(new[] {
+                                             TrimTxtFiles(sourceExt: ".foo"),
+                                             TrimTxtFiles(sourceExt: ".bar")
+                                           },
+                                           stdout: new StringWriter(),
+                                           baseDir: dir.Path));
+      }
+    }
+
+    [Test]
+    [Ignore("TODO")]
     public void Throw_when_two_build_tasks_build_the_same_file() {
       using (var dir = new TmpDir()) {
         dir.CreateFile(" foo ", "src1", "foo.txt");
