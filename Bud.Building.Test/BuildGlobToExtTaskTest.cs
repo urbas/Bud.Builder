@@ -175,7 +175,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void Tasks_with_different_source_ext_are_not_conflicting() {
       using (var dir = new TmpDir()) {
         Assert.DoesNotThrow(() => RunBuild(new[] {
