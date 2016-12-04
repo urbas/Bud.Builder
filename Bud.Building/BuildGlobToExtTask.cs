@@ -46,7 +46,7 @@ namespace Bud {
   ///   </para>
   ///
   ///   <para>
-  ///     - the <see cref="Signature"/> of the task has changed since the last build.
+  ///     - the <see cref="Salt"/> of the task has changed since the last build.
   ///   </para>
   /// </remarks>
   public class BuildGlobToExtTask : BuildTask {
@@ -80,7 +80,15 @@ namespace Bud {
     ///   This string is used to determine whether the task has changed due to factors other than input and output
     ///   files.
     /// </summary>
-    public string Signature { get; }
+    /// <remarks>
+    ///   This parameter can be used to invalidate any old output. For example, say you invoked a build task that
+    ///   runs the Foobarize compiler of version 1.0.0 with arguments <c>--optimize --minify</c>. In this case, you
+    ///   could use a salt like this: <c>"Foobarize 1.0.0 opt+min"</c>. Now you upgrade the compiler to version 2.0.0
+    ///   and run it with the argument <c>--debug</c>. In this case your salt parameter could look something like this:
+    ///   <c>"Foobarize 2.0.0 debug"</c>. The build will notice that the salt has changed since the last run and will
+    ///   re-invoke the compiler even if no source files have changed.
+    /// </remarks>
+    public string Salt { get; }
 
     /// <summary>
     ///    Creates a new build task.
@@ -90,14 +98,14 @@ namespace Bud {
                               string sourceExt,
                               string outputDir,
                               string outputExt,
-                              string signature = null,
+                              string salt = null,
                               IEnumerable<BuildTask> dependencies = null) : base(dependencies) {
       Command = command;
       SourceDir = sourceDir;
       SourceExt = sourceExt;
       OutputDir = outputDir;
       OutputExt = outputExt;
-      Signature = signature;
+      Salt = salt;
     }
 
     /// <inheritdoc />
