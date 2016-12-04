@@ -164,6 +164,19 @@ namespace Bud {
 
     [Test]
     [Ignore("TODO")]
+    public void Tasks_with_different_source_dir_are_not_conflicting() {
+      using (var dir = new TmpDir()) {
+        Assert.DoesNotThrow(() => RunBuild(new[] {
+                                             TrimTxtFiles(sourceDir: "foo"),
+                                             TrimTxtFiles(sourceDir: "bar")
+                                           },
+                                           stdout: new StringWriter(),
+                                           baseDir: dir.Path));
+      }
+    }
+
+    [Test]
+    [Ignore("TODO")]
     public void Throw_when_two_build_tasks_build_the_same_file() {
       using (var dir = new TmpDir()) {
         dir.CreateFile(" foo ", "src1", "foo.txt");
@@ -202,7 +215,7 @@ namespace Bud {
       }
     }
 
-    private static BuildGlobToExtTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt", string outputExt = ".txt.nospace", string outputDir = "build")
+    private static BuildGlobToExtTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt", string outputDir = "build", string outputExt = ".txt.nospace")
       => new BuildGlobToExtTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
                                                                       ctx.OutputExt),
                                 sourceDir: sourceDir,
