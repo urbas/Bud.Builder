@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using static Bud.FileUtils;
 
 namespace Bud {
   internal static class BuildExecution {
@@ -29,12 +30,13 @@ namespace Bud {
         new TaskGraph(builtTaskGraphs).Run();
       } finally {
         var taskSignaturesDir = Path.Combine(baseDir, TaskSignaturesDirName);
-        FileUtils.DeleteExtraneousFiles(taskSignaturesDir,
-                                        new HashSet<string>(signatures2Tasks
-                                                              .Keys
-                                                              .Select(signature => Path.Combine(taskSignaturesDir, signature))));
+        DeleteExtraneousFiles(taskSignaturesDir,
+                              new HashSet<string>(ToSignatureFiles(signatures2Tasks.Keys, taskSignaturesDir)));
       }
     }
+
+    private static IEnumerable<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
+      => signatures.Select(signature => Path.Combine(taskSignaturesDir, signature));
 
     private static int CountTasks(ICollection<BuildTask> tasks)
       => tasks.Count + tasks.Select(task => CountTasks(task.Dependencies)).Sum();

@@ -42,7 +42,7 @@ namespace Bud {
     /// a path is allowed.</param>
     /// <param name="fileExtension">the extension the files to delete should match. Other files will not be
     /// touched.</param>
-    public static void DeleteExtraneousFiles(string dir, ICollection<string> allowedFiles, string fileExtension = "") {
+    public static void DeleteExtraneousFiles(string dir, ISet<string> allowedFiles, string fileExtension = "") {
       foreach (var outputFile in FindFiles(dir, fileExtension)) {
         if (!allowedFiles.Contains(outputFile)) {
           File.Delete(outputFile);
