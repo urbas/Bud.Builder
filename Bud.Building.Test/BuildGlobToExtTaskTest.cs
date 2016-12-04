@@ -151,7 +151,6 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void No_accidantally_conflicting_signatures() {
       using (var dir = new TmpDir()) {
         Assert.DoesNotThrow(() => RunBuild(new[] {
