@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Bud.BuildingTesterApp.Options;
 using NUnit.Framework;
@@ -187,16 +188,16 @@ namespace Bud {
     }
 
     [Test]
-    [Ignore("TODO")]
     public void Throw_when_two_build_tasks_build_the_same_file() {
       using (var dir = new TmpDir()) {
         dir.CreateFile(" foo ", "src1", "foo.txt");
         dir.CreateFile(" bar ", "src2", "foo.txt");
 
         TestDelegate testDelegate = () => {
+          var task1 = TrimTxtFiles(sourceDir: "src1", outputDir: "build");
           RunBuild(new[] {
-                     TrimTxtFiles(sourceDir: "src1", outputDir: "build"),
-                     TrimTxtFiles(sourceDir: "src2", outputDir: "build")
+                     task1,
+                     TrimTxtFiles(sourceDir: "src2", outputDir: "build", dependsOn: new []{task1})
                    },
                    stdout: new StringWriter(),
                    baseDir: dir.Path);
@@ -205,10 +206,11 @@ namespace Bud {
         var clashingFile = dir.CreatePath("build", "foo.txt.nospace");
 
 
-        var exception = Assert.Throws<Exception>(testDelegate);
-        Assert.AreEqual($"Two builds produce the file '{clashingFile}'. " +
-                        $"Build 'src1/**/*.txt -> build/**/*.txt.nospace' and 'src2/**/*.txt.nospace'.",
-                        exception.Message);
+        var exception = Assert.Throws<AggregateException>(testDelegate);
+        Assert.AreEqual($"Two builds are trying to produce the file '{clashingFile}'. " +
+                        $"Build 'src1/**/*.txt -> build/**/*.txt.nospace' and " +
+                        $"'src2/**/*.txt -> build/**/*.txt.nospace'.",
+                        exception.InnerExceptions[0].Message);
       }
     }
 
@@ -226,12 +228,15 @@ namespace Bud {
       }
     }
 
-    private static BuildGlobToExtTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt", string outputDir = "build", string outputExt = ".txt.nospace")
+    private static BuildGlobToExtTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt",
+                                                   string outputDir = "build", string outputExt = ".txt.nospace",
+                                                   IEnumerable<BuildTask> dependsOn = null)
       => new BuildGlobToExtTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
                                                                       ctx.OutputExt),
                                 sourceDir: sourceDir,
                                 sourceExt: sourceExt,
                                 outputDir: outputDir,
-                                outputExt: outputExt);
+                                outputExt: outputExt,
+                                dependencies: dependsOn);
   }
 }

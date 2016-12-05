@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Bud {
   /// <summary>
@@ -9,6 +11,7 @@ namespace Bud {
   /// </summary>
   public class BuildContext : IBuildContext {
     private readonly ConcurrentDictionary<string, BuildTask> signatures2Tasks;
+    private readonly ConcurrentDictionary<string, BuildTask> outputFiles2Tasks;
 
     /// <param name="stdout"><see cref="Stdout"/></param>
     /// <param name="buildStopwatch"><see cref="BuildStopwatch"/></param>
@@ -17,14 +20,18 @@ namespace Bud {
     /// <param name="baseDir"><see cref="BaseDir"/></param>
     /// <param name="signatures2Tasks">a dictionary of signatures and tasks. The signatures uniquely identify
     /// tasks.</param>
+    /// <param name="outputFiles2Tasks">the output files created by the current build and the tasks that created
+    /// them.</param>
     public BuildContext(TextWriter stdout, Stopwatch buildStopwatch, int thisTaskNumber, int totalTasks,
-                        string baseDir, ConcurrentDictionary<string, BuildTask> signatures2Tasks) {
+                        string baseDir, ConcurrentDictionary<string, BuildTask> signatures2Tasks,
+                        ConcurrentDictionary<string, BuildTask> outputFiles2Tasks) {
       Stdout = stdout;
       BuildStopwatch = buildStopwatch;
       ThisTaskNumber = thisTaskNumber;
       TotalTasks = totalTasks;
       BaseDir = baseDir;
       this.signatures2Tasks = signatures2Tasks;
+      this.outputFiles2Tasks = outputFiles2Tasks;
       TaskSignaturesDir = Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
     }
 
@@ -87,6 +94,18 @@ namespace Bud {
       var storedTask = signatures2Tasks.GetOrAdd(taskSignature, buildTask);
       if (storedTask != buildTask) {
         throw new Exception($"Clashing build specification. Found duplicate tasks: '{storedTask}' and '{buildTask}'.");
+      }
+    }
+
+    public void RegisterOutputFiles(BuildTask buildTask, IEnumerable<string> expectedOutputFiles) {
+      var fullOutputPaths = expectedOutputFiles.Select(Path.GetFullPath);
+      foreach (var fullOutputPath in fullOutputPaths) {
+        var existingTask = outputFiles2Tasks.GetOrAdd(fullOutputPath, buildTask);
+
+        if (existingTask != buildTask) {
+          throw new Exception($"Two builds are trying to produce the file '{fullOutputPath}'. " +
+                              $"Build '{existingTask}' and '{buildTask}'.");
+        }
       }
     }
   }
