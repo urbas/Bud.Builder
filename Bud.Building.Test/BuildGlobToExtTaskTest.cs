@@ -197,7 +197,7 @@ namespace Bud {
           var task1 = TrimTxtFiles(sourceDir: "src1", outputDir: "build");
           RunBuild(new[] {
                      task1,
-                     TrimTxtFiles(sourceDir: "src2", outputDir: "build", dependsOn: new []{task1})
+                     TrimTxtFiles(sourceDir: "src2", outputDir: "build", dependsOn: new[] {task1})
                    },
                    stdout: new StringWriter(),
                    baseDir: dir.Path);
@@ -211,6 +211,23 @@ namespace Bud {
                         $"Build 'src1/**/*.txt -> build/**/*.txt.nospace' and " +
                         $"'src2/**/*.txt -> build/**/*.txt.nospace'.",
                         exception.InnerExceptions[0].Message);
+      }
+    }
+
+    [Test]
+    [Ignore("TODO")]
+    public void Files_produced_by_other_tasks_are_not_deleted() {
+      using (var dir = new TmpDir()) {
+        dir.CreateFile(" foo ", "src1", "foo.txt");
+        dir.CreateFile(" bar ", "src2", "bar.txt");
+
+        var fooTask = TrimTxtFiles(sourceDir: "src1", outputDir: "build");
+        var barTask = TrimTxtFiles(sourceDir: "src2", outputDir: "build", dependsOn: new[] {fooTask});
+
+        RunBuild(new[] {fooTask, barTask}, stdout: new StringWriter(), baseDir: dir.Path);
+
+        FileAssert.AreEqual(dir.CreateFile("foo", "expected.foo"), dir.CreatePath("build", "foo.txt.nospace"));
+        FileAssert.AreEqual(dir.CreateFile("bar", "expected.bar"), dir.CreatePath("build", "bar.txt.nospace"));
       }
     }
 
