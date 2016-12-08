@@ -28,6 +28,7 @@ namespace Bud {
       var builtTaskGraphs = buildTasks.Select(task => ToTaskGraph(task2TaskGraphs, stdout, task, taskNumberAssigner,
                                                                   buildStopwatch, baseDir, metaDir, signatures2Tasks,
                                                                   outputFiles2Tasks));
+
       try {
         new TaskGraph(builtTaskGraphs).Run();
       } finally {
@@ -35,6 +36,10 @@ namespace Bud {
         DeleteExtraneousFiles(taskSignaturesDir,
                               new HashSet<string>(ToSignatureFiles(signatures2Tasks.Keys, taskSignaturesDir)));
       }
+    }
+
+    internal static IEnumerable<string> CollectOutputFiles(IEnumerable<BuildTask> buildTasks) {
+      return Enumerable.Empty<string>();
     }
 
     private static IEnumerable<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
