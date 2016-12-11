@@ -38,9 +38,13 @@ namespace Bud {
       }
     }
 
-    internal static IEnumerable<string> CollectOutputFiles(IEnumerable<BuildTask> buildTasks) {
-      return Enumerable.Empty<string>();
-    }
+    internal static IEnumerable<string> CollectOutputFiles(IEnumerable<BuildTask> buildTasks)
+      => buildTasks.Select(task => task.OutputFiles)
+                   .Aggregate(new HashSet<string>(),
+                              (collectedFiles, taskFiles) => {
+                                collectedFiles.UnionWith(taskFiles);
+                                return collectedFiles;
+                              });
 
     private static IEnumerable<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
       => signatures.Select(signature => Path.Combine(taskSignaturesDir, signature));

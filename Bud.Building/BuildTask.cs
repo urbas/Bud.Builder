@@ -34,6 +34,11 @@ namespace Bud {
     public ImmutableArray<BuildTask> Dependencies { get; }
 
     /// <summary>
+    ///    Returns the list of files that will be produced by this task.
+    /// </summary>
+    public abstract ImmutableArray<string> OutputFiles { get; }
+
+    /// <summary>
     ///   This method should perform the work of this build task.
     /// </summary>
     /// <param name="ctx">
