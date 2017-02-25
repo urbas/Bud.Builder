@@ -3,7 +3,7 @@ using System.Text;
 using NUnit.Framework;
 using static Bud.HexUtils;
 using static NUnit.Framework.Assert;
-using Contains = NUnit.Framework.Contains;
+using DoesContain = NUnit.Framework.Contains;
 
 namespace Bud {
   public class TaskSignerTest {
@@ -13,7 +13,7 @@ namespace Bud {
                                           var _ = new TaskSigner().Signature;
                                         });
       That(exception.Message,
-           Contains.Substring("The hash has not yet been calculated. Call 'Finish' to calculate the hash."));
+           DoesContain.Substring("The hash has not yet been calculated. Call 'Finish' to calculate the hash."));
     }
 
     [Test]
@@ -35,7 +35,7 @@ namespace Bud {
     public void Signature_throws_when_buffer_smaller_than_4() {
       var exception = Throws<ArgumentException>(() => new TaskSigner(new byte[3]));
       That(exception.Message,
-           Contains.Substring("The buffer must have at least 4 bytes."));
+           DoesContain.Substring("The buffer must have at least 4 bytes."));
     }
 
     [Test]
