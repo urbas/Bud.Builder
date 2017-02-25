@@ -156,6 +156,7 @@ namespace Bud {
       File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
     }
 
+    /// <returns>a string of the form <c>"src/**/*.ts -> out/bin/**/*.js"</c></returns>
     public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
 
     private byte[] CalculateTaskSignature(IEnumerable<string> sources)
