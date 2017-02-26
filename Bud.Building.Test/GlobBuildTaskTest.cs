@@ -221,10 +221,10 @@ namespace Bud {
         dir.CreateFile(" foo ", "src1", "foo.txt");
         dir.CreateFile(" bar ", "src2", "bar.txt");
 
-        var fooTask = TrimTxtFiles(sourceDir: "src1", outputDir: "build");
-        var barTask = TrimTxtFiles(sourceDir: "src2", outputDir: "build", dependsOn: new[] {fooTask});
+        var fooTask = TrimTxtFiles(sourceDir: "src1");
+        var barTask = TrimTxtFiles(sourceDir: "src2", dependsOn: new[] {fooTask});
 
-        RunBuild(new[] {fooTask, barTask}, stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(barTask, stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "expected.foo"), dir.CreatePath("build", "foo.txt.nospace"));
         FileAssert.AreEqual(dir.CreateFile("bar", "expected.bar"), dir.CreatePath("build", "bar.txt.nospace"));
@@ -246,14 +246,14 @@ namespace Bud {
     }
 
     private static GlobBuildTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt",
-                                                   string outputDir = "build", string outputExt = ".txt.nospace",
-                                                   IEnumerable<BuildTask> dependsOn = null)
+                                              string outputDir = "build", string outputExt = ".txt.nospace",
+                                              IEnumerable<BuildTask> dependsOn = null)
       => new GlobBuildTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
-                                                                      ctx.OutputExt),
-                                sourceDir: sourceDir,
-                                sourceExt: sourceExt,
-                                outputDir: outputDir,
-                                outputExt: outputExt,
-                                dependencies: dependsOn);
+                                                                 ctx.OutputExt),
+                           sourceDir: sourceDir,
+                           sourceExt: sourceExt,
+                           outputDir: outputDir,
+                           outputExt: outputExt,
+                           dependencies: dependsOn);
   }
 }

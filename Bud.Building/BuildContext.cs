@@ -41,7 +41,7 @@ namespace Bud {
     public TextWriter Stdout { get; }
 
     /// <summary>
-    ///   this stopwatch will be stopping time since the moment the user invoked the build.
+    ///   this stopwatch is stopping time elapsed since the moment the user invoked the build.
     /// </summary>
     public Stopwatch BuildStopwatch { get; }
 

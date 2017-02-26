@@ -88,5 +88,17 @@ namespace Bud {
       task2TaskGraphs.Add(buildTask, taskGraph);
       return taskGraph;
     }
+
+    private class BuildTaskNumberAssigner {
+      private int lastAssignedNumber;
+
+      public BuildTaskNumberAssigner(int totalTasks) {
+        TotalTasks = totalTasks;
+      }
+
+      public int TotalTasks { get; }
+
+      public int AssignNumber() => ++lastAssignedNumber;
+    }
   }
 }
