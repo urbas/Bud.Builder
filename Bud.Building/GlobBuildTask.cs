@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using static Bud.FileUtils;
@@ -94,12 +95,12 @@ namespace Bud {
     ///    Creates a new build task.
     /// </summary>
     public GlobBuildTask(GlobBuildCommand command,
-                              string sourceDir,
-                              string sourceExt,
-                              string outputDir,
-                              string outputExt,
-                              string salt = null,
-                              IEnumerable<BuildTask> dependencies = null) : base(dependencies) {
+                         string sourceDir,
+                         string sourceExt,
+                         string outputDir,
+                         string outputExt,
+                         string salt = null,
+                         IEnumerable<BuildTask> dependencies = null) : base(dependencies) {
       Command = command;
       SourceDir = sourceDir;
       SourceExt = sourceExt;
@@ -115,9 +116,9 @@ namespace Bud {
       var rootDirUri = new Uri($"{sourceDir}/");
       var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
 
-      var expectedOutputFiles = new HashSet<string>(
-        sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
-               .Select(relativePath => ToOutputPath(outputDir, relativePath)));
+      var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
+                                       .Select(relativePath => ToOutputPath(outputDir, relativePath))
+                                       .ToImmutableHashSet();
 
       DeleteExtraneousFiles(outputDir, expectedOutputFiles, OutputExt);
 
@@ -130,7 +131,7 @@ namespace Bud {
       // NOTE: Maybe move this method into ctx.
       InvokeIfNeeded(ctx, command, expectedOutputFiles, hexSignature);
 
-      return new BuildResult();
+      return new BuildResult(outputFiles: expectedOutputFiles);
     }
 
     private string ToOutputPath(string outputDir, string relativePath)
@@ -140,8 +141,6 @@ namespace Bud {
 
     private void InvokeIfNeeded(BuildContext ctx, Action command, ICollection<string> expectedOutputFiles,
                                 string hexDigest) {
-      ctx.RegisterOutputFiles(this, expectedOutputFiles);
-
       var taskSignatureFile = Path.Combine(ctx.TaskSignaturesDir, hexDigest);
       if (expectedOutputFiles.All(File.Exists) && File.Exists(taskSignatureFile)) {
         ctx.MarkTaskFinished(this, hexDigest);
@@ -159,11 +158,16 @@ namespace Bud {
     public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
 
     private byte[] CalculateTaskSignature(IEnumerable<string> sources)
-      => new TaskSigner().Digest("Sources").DigestSources(sources)
-                         .Digest("SourceDir").Digest(SourceDir)
-                         .Digest("SourceExt").Digest(SourceExt)
-                         .Digest("OutputDir").Digest(OutputDir)
-                         .Digest("OutputExt").Digest(OutputExt)
+      => new TaskSigner().Digest("Sources")
+                         .DigestSources(sources)
+                         .Digest("SourceDir")
+                         .Digest(SourceDir)
+                         .Digest("SourceExt")
+                         .Digest(SourceExt)
+                         .Digest("OutputDir")
+                         .Digest(OutputDir)
+                         .Digest("OutputExt")
+                         .Digest(OutputExt)
                          .Finish()
                          .Signature;
   }

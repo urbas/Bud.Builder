@@ -74,10 +74,35 @@ namespace Bud {
       var buildContext = new BuildContext(stdout, buildStopwatch, buildTaskNumberAssigner.AssignNumber(),
                                           buildTaskNumberAssigner.TotalTasks, baseDir, signatures2Tasks,
                                           outputFiles2Tasks);
-      var taskGraph = new TaskGraph(() => buildTask.Execute(buildContext), taskGraphs);
+      var taskGraph = new TaskGraph(() => {
+        var buildResult = buildTask.Execute(buildContext);
+        RegisterOutputFiles(outputFiles2Tasks, buildTask, buildResult.OutputFiles);
+      }, taskGraphs);
       task2TaskGraphs.Add(buildTask, taskGraph);
       return taskGraph;
     }
+
+    /// <summary>
+    ///   This method will check that the output files of one build task don't clash with output files of any other
+    ///   build task.
+    /// </summary>
+    /// <param name="outputFiles2Tasks">all output files produced so far.</param>
+    /// <param name="buildTask">the task that produces the given output files belong.</param>
+    /// <param name="outputFiles">the output files that the given build task produces.</param>
+    /// <exception cref="Exception">this exception is thrown if any of the output files clashes with the output files
+    /// of another build task.</exception>
+    private static void RegisterOutputFiles(ConcurrentDictionary<string, BuildTask> outputFiles2Tasks,
+                                            BuildTask buildTask, IEnumerable<string> outputFiles) {
+      var fullOutputPaths = outputFiles.Select(Path.GetFullPath);
+      foreach (var fullOutputPath in fullOutputPaths) {
+        var existingTask = outputFiles2Tasks.GetOrAdd(fullOutputPath, buildTask);
+        if (existingTask != buildTask) {
+          throw new Exception($"Two builds are trying to produce the file '{fullOutputPath}'. " +
+                              $"Build '{existingTask}' and '{buildTask}'.");
+        }
+      }
+    }
+
 
     private class BuildTaskNumberAssigner {
       private int lastAssignedNumber;

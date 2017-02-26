@@ -96,24 +96,5 @@ namespace Bud {
         throw new Exception($"Clashing build specification. Found duplicate tasks: '{storedTask}' and '{buildTask}'.");
       }
     }
-
-    /// <summary>
-    ///   Tasks should call this method to tell what output files they produce. This method will check that the output
-    ///   files don't clash with output files of any other build task.
-    /// </summary>
-    /// <param name="buildTask">the task that produces the given output files belong.</param>
-    /// <param name="outputFiles">the output files that the given build task produces.</param>
-    /// <exception cref="Exception">this exception is thrown if any of the output files clashes with the output files
-    /// of another build task.</exception>
-    public void RegisterOutputFiles(BuildTask buildTask, IEnumerable<string> outputFiles) {
-      var fullOutputPaths = outputFiles.Select(Path.GetFullPath);
-      foreach (var fullOutputPath in fullOutputPaths) {
-        var existingTask = outputFiles2Tasks.GetOrAdd(fullOutputPath, buildTask);
-        if (existingTask != buildTask) {
-          throw new Exception($"Two builds are trying to produce the file '{fullOutputPath}'. " +
-                              $"Build '{existingTask}' and '{buildTask}'.");
-        }
-      }
-    }
   }
 }
