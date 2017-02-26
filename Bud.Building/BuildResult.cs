@@ -14,11 +14,18 @@ namespace Bud {
     public ImmutableHashSet<string> OutputFiles { get; }
 
     /// <summary>
+    ///   The signature of the task that will generate the output files.
+    /// </summary>
+    public string Signature { get; }
+
+    /// <summary>
     ///   Initializes a new instance of the <see cref="BuildResult"/> class.
     /// </summary>
     /// <param name="outputFiles">see <see cref="OutputFiles"/>.</param>
-    public BuildResult(ImmutableHashSet<string> outputFiles) {
+    /// <param name="signature">see <see cref="Signature"/></param>
+    public BuildResult(ImmutableHashSet<string> outputFiles, string signature) {
       OutputFiles = outputFiles;
+      Signature = signature;
     }
   }
 }

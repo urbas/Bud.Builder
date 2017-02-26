@@ -109,8 +109,23 @@ namespace Bud {
       Salt = salt;
     }
 
+    public override BuildResult ExpectedResult(BuildContext ctx) {
+      var sourceDir = ToAbsDir(SourceDir, ctx.BaseDir);
+      var sources = FindFiles(sourceDir, SourceExt);
+      var rootDirUri = new Uri($"{sourceDir}/");
+      var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
+
+      var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
+                                       .Select(relativePath => ToOutputPath(outputDir, relativePath))
+                                       .ToImmutableHashSet();
+
+      var hexSignature = ToHexStringFromBytes(CalculateTaskSignature(sources));
+
+      return new BuildResult(outputFiles: expectedOutputFiles, signature: hexSignature);
+    }
+
     /// <inheritdoc />
-    public override BuildResult Execute(BuildContext ctx) {
+    public override void Execute(BuildContext ctx) {
       var sourceDir = ToAbsDir(SourceDir, ctx.BaseDir);
       var sources = FindFiles(sourceDir, SourceExt);
       var rootDirUri = new Uri($"{sourceDir}/");
@@ -127,32 +142,13 @@ namespace Bud {
         Command(buildGlobToExtContext);
       };
 
-      var hexSignature = ToHexStringFromBytes(CalculateTaskSignature(sources));
-      // NOTE: Maybe move this method into ctx.
-      InvokeIfNeeded(ctx, command, expectedOutputFiles, hexSignature);
-
-      return new BuildResult(outputFiles: expectedOutputFiles);
+      command();
     }
 
     private string ToOutputPath(string outputDir, string relativePath)
       => Path.Combine(outputDir,
                       Path.GetDirectoryName(relativePath),
                       Path.GetFileNameWithoutExtension(relativePath) + OutputExt);
-
-    private void InvokeIfNeeded(BuildContext ctx, Action command, ICollection<string> expectedOutputFiles,
-                                string hexDigest) {
-      var taskSignatureFile = Path.Combine(ctx.TaskSignaturesDir, hexDigest);
-      if (expectedOutputFiles.All(File.Exists) && File.Exists(taskSignatureFile)) {
-        ctx.MarkTaskFinished(this, hexDigest);
-        return;
-      }
-
-      command();
-
-      ctx.MarkTaskFinished(this, hexDigest);
-      Directory.CreateDirectory(ctx.TaskSignaturesDir);
-      File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
-    }
 
     /// <returns>a string of the form <c>"src/**/*.ts -> out/bin/**/*.js"</c></returns>
     public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";

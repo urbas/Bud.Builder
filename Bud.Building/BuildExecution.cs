@@ -72,11 +72,20 @@ namespace Bud {
                                                                            outputFiles2Tasks))
                                 .ToImmutableArray();
       var buildContext = new BuildContext(stdout, buildStopwatch, buildTaskNumberAssigner.AssignNumber(),
-                                          buildTaskNumberAssigner.TotalTasks, baseDir, signatures2Tasks,
-                                          outputFiles2Tasks);
+                                          buildTaskNumberAssigner.TotalTasks, baseDir, signatures2Tasks);
       var taskGraph = new TaskGraph(() => {
-        var buildResult = buildTask.Execute(buildContext);
+        var buildResult = buildTask.ExpectedResult(buildContext);
         RegisterOutputFiles(outputFiles2Tasks, buildTask, buildResult.OutputFiles);
+
+        var taskSignatureFile = Path.Combine(buildContext.TaskSignaturesDir, buildResult.Signature);
+        if (!buildResult.OutputFiles.All(File.Exists) || !File.Exists(taskSignatureFile)) {
+          buildTask.Execute(buildContext);
+        }
+
+        MarkTaskFinished(signatures2Tasks, buildTask, buildResult.Signature);
+        Directory.CreateDirectory(buildContext.TaskSignaturesDir);
+        File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
+
       }, taskGraphs);
       task2TaskGraphs.Add(buildTask, taskGraph);
       return taskGraph;
@@ -103,6 +112,23 @@ namespace Bud {
       }
     }
 
+    /// <summary>
+    /// Adds the signature and the task into a build-wide dictionary of signatures and corresponding tasks. If the
+    /// signature already exists for a different task, then this method throws an exception.
+    /// </summary>
+    /// <param name="signatures2Tasks">all task signatures collected so far</param>
+    /// <param name="buildTask">the task that successfully finished.</param>
+    /// <param name="taskSignature">the signature of the given <paramref name="buildTask"/>.</param>
+    /// <exception cref="Exception">thrown if another build task with the same signature already finished
+    /// before.</exception>
+    public static void MarkTaskFinished(ConcurrentDictionary<string, BuildTask> signatures2Tasks,
+                                        BuildTask buildTask,
+                                        string taskSignature) {
+      var storedTask = signatures2Tasks.GetOrAdd(taskSignature, buildTask);
+      if (storedTask != buildTask) {
+        throw new Exception($"Clashing build specification. Found duplicate tasks: '{storedTask}' and '{buildTask}'.");
+      }
+    }
 
     private class BuildTaskNumberAssigner {
       private int lastAssignedNumber;
