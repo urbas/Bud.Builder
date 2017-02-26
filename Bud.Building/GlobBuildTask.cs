@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using static Bud.FileUtils;
@@ -108,8 +107,6 @@ namespace Bud {
       OutputExt = outputExt;
       Salt = salt;
     }
-
-    public override ImmutableArray<string> OutputFiles { get; }
 
     /// <inheritdoc />
     public override void Execute(BuildContext ctx) {

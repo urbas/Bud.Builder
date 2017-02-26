@@ -67,7 +67,6 @@
   <ItemGroup>
     <Compile Include="BuildActionTaskTest.cs" />
     <Compile Include="BuildContextTest.cs" />
-    <Compile Include="BuildExecutionTest.cs" />
     <Compile Include="GlobBuildTaskTest.cs" />
     <Compile Include="FilesUtilsTest.cs" />
     <Compile Include="HexUtilsTest.cs" />

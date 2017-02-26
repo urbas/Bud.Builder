@@ -9,16 +9,14 @@ namespace Bud {
     /// <summary>
     ///   Initializes a build task without dependencies.
     /// </summary>
-    protected BuildTask() : this(null) {}
+    protected BuildTask() : this(null) { }
 
     /// <summary>
     ///   Initializes a build task with the given the dependencies.
     /// </summary>
     /// <param name="dependencies">these tasks will be executed before this task.</param>
     protected BuildTask(IEnumerable<BuildTask> dependencies)
-      : this(dependencies == null ?
-               ImmutableArray<BuildTask>.Empty :
-               ImmutableArray.CreateRange(dependencies)) {}
+      : this(dependencies == null ? ImmutableArray<BuildTask>.Empty : ImmutableArray.CreateRange(dependencies)) { }
 
     /// <summary>
     ///   Initializes a build task with the given the dependencies.
@@ -32,11 +30,6 @@ namespace Bud {
     /// Other build tasks that should be invoked before this one.
     /// </summary>
     public ImmutableArray<BuildTask> Dependencies { get; }
-
-    /// <summary>
-    ///    Returns the list of files that will be produced by this task.
-    /// </summary>
-    public abstract ImmutableArray<string> OutputFiles { get; }
 
     /// <summary>
     ///   This method should perform the work of this build task.

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Bud {
   /// <summary>
@@ -30,8 +29,6 @@ namespace Bud {
       Action = action;
       Name = name;
     }
-
-    public override ImmutableArray<string> OutputFiles => ImmutableArray<string>.Empty;
 
     /// <inheritdoc />
     public override void Execute(BuildContext ctx) {

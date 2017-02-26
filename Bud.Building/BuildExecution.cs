@@ -38,16 +38,6 @@ namespace Bud {
       }
     }
 
-    internal static HashSet<string> CollectOutputFiles(IEnumerable<BuildTask> buildTasks, string baseDir)
-      => buildTasks.Select(task => task.OutputFiles)
-                   .Aggregate(new HashSet<string>(),
-                              (collectedFiles, taskFiles) => {
-                                var absoluteTaskFilePaths = taskFiles
-                                  .Select(path => Path.GetFullPath(Path.Combine(baseDir, path)));
-                                collectedFiles.UnionWith(absoluteTaskFilePaths);
-                                return collectedFiles;
-                              });
-
     private static IEnumerable<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
       => signatures.Select(signature => Path.Combine(taskSignaturesDir, signature));
 
