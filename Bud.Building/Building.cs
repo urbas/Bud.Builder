@@ -7,18 +7,6 @@ namespace Bud {
   /// </summary>
   public static class Building {
     /// <summary>
-    ///   Creates a build task that will invoke the given action.
-    /// </summary>
-    /// <param name="action">the action to invoke in this build task.</param>
-    /// <param name="name">
-    ///   the name of this build task (this name will be used in the build output and build logs).
-    /// </param>
-    /// <param name="dependsOn">other build tasks that should be invoked before this build task.</param>
-    /// <returns>the build task object.</returns>
-    public static BuildActionTask Build(BuildAction action, string name = null, IEnumerable<BuildTask> dependsOn = null)
-      => new BuildActionTask(action, name, dependsOn);
-
-    /// <summary>
     ///   Creates a build task where multiple sources are built into multiple output files.
     /// </summary>
     /// <param name="command">this function performs the actual build.</param>

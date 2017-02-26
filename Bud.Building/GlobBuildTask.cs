@@ -109,7 +109,7 @@ namespace Bud {
     }
 
     /// <inheritdoc />
-    public override void Execute(BuildContext ctx) {
+    public override BuildResult Execute(BuildContext ctx) {
       var sourceDir = ToAbsDir(SourceDir, ctx.BaseDir);
       var sources = FindFiles(sourceDir, SourceExt);
       var rootDirUri = new Uri($"{sourceDir}/");
@@ -129,6 +129,8 @@ namespace Bud {
       var hexSignature = ToHexStringFromBytes(CalculateTaskSignature(sources));
       // NOTE: Maybe move this method into ctx.
       InvokeIfNeeded(ctx, command, expectedOutputFiles, hexSignature);
+
+      return new BuildResult();
     }
 
     private string ToOutputPath(string outputDir, string relativePath)

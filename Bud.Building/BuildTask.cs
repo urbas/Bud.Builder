@@ -40,6 +40,16 @@ namespace Bud {
     /// <remarks>
     ///   This method is blocking.
     /// </remarks>
-    public abstract void Execute(BuildContext ctx);
+    public abstract BuildResult Execute(BuildContext ctx);
   }
+
+  /// <summary>
+  ///   Contains information about outcome of a build. For example: a list of output files and the signature of the
+  ///   task.
+  ///
+  ///   Instances of this class are returned by the <see cref="BuildTask.Execute"/> method.
+  /// </summary>
+  public class BuildResult {
+  }
+
 }
