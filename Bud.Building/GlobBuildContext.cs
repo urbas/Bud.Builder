@@ -15,7 +15,8 @@ namespace Bud {
     /// <summary>
     ///   Creates a new context with the given information.
     /// </summary>
-    public GlobBuildContext(BuildContext ctx, IImmutableSet<string> sources, string sourceDir, string sourcesExt, string outputDir, string outputExt) {
+    public GlobBuildContext(BuildContext ctx, IImmutableSet<string> sources, string sourceDir, string sourcesExt,
+                            string outputDir, string outputExt) {
       Context = ctx;
       Sources = sources;
       SourceDir = sourceDir;
@@ -38,9 +39,7 @@ namespace Bud {
     /// <remarks>
     ///   This method throws if the process fails.
     /// </remarks>
-    public void Command(string executablePath,
-                        string args = null,
-                        string cwd = null,
+    public void Command(string executablePath, string args = null, string cwd = null,
                         IDictionary<string, string> env = null) {
       Run(executablePath, args, cwd: cwd ?? BaseDir, env: env);
     }

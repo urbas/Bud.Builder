@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,23 +9,18 @@ namespace Bud {
   ///   Provides a bunch of information to each task.
   /// </summary>
   public class BuildContext : IBuildContext {
-    private readonly ConcurrentDictionary<string, BuildTask> signatures2Tasks;
-
-    /// <param name="stdout"><see cref="Stdout"/></param>
-    /// <param name="buildStopwatch"><see cref="BuildStopwatch"/></param>
-    /// <param name="thisTaskNumber"><see cref="ThisTaskNumber"/></param>
-    /// <param name="totalTasks"><see cref="TotalTasks"/></param>
-    /// <param name="baseDir"><see cref="BaseDir"/></param>
-    /// <param name="signatures2Tasks">a dictionary of signatures and tasks. The signatures uniquely identify
-    /// tasks.</param>
+    /// <param name="stdout">see <see cref="Stdout"/></param>
+    /// <param name="buildStopwatch">see <see cref="BuildStopwatch"/></param>
+    /// <param name="thisTaskNumber">see <see cref="ThisTaskNumber"/></param>
+    /// <param name="totalTasks">see <see cref="TotalTasks"/></param>
+    /// <param name="baseDir">see <see cref="BaseDir"/></param>
     public BuildContext(TextWriter stdout, Stopwatch buildStopwatch, int thisTaskNumber, int totalTasks,
-                        string baseDir, ConcurrentDictionary<string, BuildTask> signatures2Tasks) {
+                        string baseDir) {
       Stdout = stdout;
       BuildStopwatch = buildStopwatch;
       ThisTaskNumber = thisTaskNumber;
       TotalTasks = totalTasks;
       BaseDir = baseDir;
-      this.signatures2Tasks = signatures2Tasks;
       TaskSignaturesDir = Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
     }
 
