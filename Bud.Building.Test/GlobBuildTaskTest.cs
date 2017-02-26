@@ -8,7 +8,7 @@ using static Bud.Exec;
 using static Bud.TesterAppPath;
 
 namespace Bud {
-  public class BuildGlobToExtTaskTest {
+  public class GlobBuildTaskTest {
     [Test]
     public void Build_produces_glob_to_ext_task() {
       using (var dir = new TmpDir()) {
@@ -245,10 +245,10 @@ namespace Bud {
       }
     }
 
-    private static BuildGlobToExtTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt",
+    private static GlobBuildTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt",
                                                    string outputDir = "build", string outputExt = ".txt.nospace",
                                                    IEnumerable<BuildTask> dependsOn = null)
-      => new BuildGlobToExtTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
+      => new GlobBuildTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
                                                                       ctx.OutputExt),
                                 sourceDir: sourceDir,
                                 sourceExt: sourceExt,

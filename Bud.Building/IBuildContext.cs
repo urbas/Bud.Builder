@@ -7,7 +7,7 @@ namespace Bud {
   /// </summary>
   public interface IBuildContext {
     /// <summary>
-    ///   The output to which to write all output of this build task.
+    ///   The output to which to write all non-error output of this build task.
     /// </summary>
     TextWriter Stdout { get; }
 

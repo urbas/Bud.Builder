@@ -50,11 +50,11 @@ namespace Bud {
   ///     - the <see cref="Salt"/> of the task has changed since the last build.
   ///   </para>
   /// </remarks>
-  public class BuildGlobToExtTask : BuildTask {
+  public class GlobBuildTask : BuildTask {
     /// <summary>
     ///   This delegate performs the actual build.
     /// </summary>
-    public BuildGlobToExtCommand Command { get; }
+    public GlobBuildCommand Command { get; }
 
     /// <summary>
     /// The directory in which to search for sources. If this directory is relative, then it will be resolved against
@@ -94,7 +94,7 @@ namespace Bud {
     /// <summary>
     ///    Creates a new build task.
     /// </summary>
-    public BuildGlobToExtTask(BuildGlobToExtCommand command,
+    public GlobBuildTask(GlobBuildCommand command,
                               string sourceDir,
                               string sourceExt,
                               string outputDir,
@@ -125,7 +125,7 @@ namespace Bud {
       DeleteExtraneousFiles(outputDir, expectedOutputFiles, OutputExt);
 
       Action command = () => {
-        var buildGlobToExtContext = new BuildGlobToExtContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
+        var buildGlobToExtContext = new GlobBuildContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
         Command(buildGlobToExtContext);
       };
 

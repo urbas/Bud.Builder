@@ -11,11 +11,11 @@ namespace Bud {
   /// extension of files produced by the build, the logger, and some helper functions through which
   /// to invoke external compilers.
   /// </summary>
-  public class BuildGlobToExtContext : IBuildContext {
+  public class GlobBuildContext : IBuildContext {
     /// <summary>
     ///   Creates a new context with the given information.
     /// </summary>
-    public BuildGlobToExtContext(BuildContext ctx, ImmutableArray<string> sources, string sourceDir, string sourcesExt, string outputDir, string outputExt) {
+    public GlobBuildContext(BuildContext ctx, ImmutableArray<string> sources, string sourceDir, string sourcesExt, string outputDir, string outputExt) {
       Context = ctx;
       Sources = sources;
       SourceDir = sourceDir;

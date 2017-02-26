@@ -26,17 +26,17 @@ namespace Bud {
     /// <param name="sourceExt">the extension of source files.</param>
     /// <param name="outputDir">the directory where output files will be placed.</param>
     /// <param name="outputExt">the extension of output files.</param>
-    /// <param name="signature">see <see cref="BuildGlobToExtTask.Salt"/></param>
+    /// <param name="signature">see <see cref="GlobBuildTask.Salt"/></param>
     /// <param name="dependsOn">other build tasks that this task depends on.</param>
     /// <returns>a build task that can be executed or can be used as a dependency of another task.</returns>
-    public static BuildGlobToExtTask Build(BuildGlobToExtCommand command,
-                                           string sourceDir,
-                                           string sourceExt,
-                                           string outputDir,
-                                           string outputExt,
-                                           string signature = null,
-                                           IEnumerable<BuildTask> dependsOn = null)
-      => new BuildGlobToExtTask(command, sourceDir, sourceExt, outputDir, outputExt, signature, dependsOn);
+    public static GlobBuildTask Build(GlobBuildCommand command,
+                                      string sourceDir,
+                                      string sourceExt,
+                                      string outputDir,
+                                      string outputExt,
+                                      string signature = null,
+                                      IEnumerable<BuildTask> dependsOn = null)
+      => new GlobBuildTask(command, sourceDir, sourceExt, outputDir, outputExt, signature, dependsOn);
 
     /// <summary>
     ///   Executes the build described by the build tasks.

@@ -55,9 +55,9 @@
     <Compile Include="BuildActionTask.cs" />
     <Compile Include="BuildContext.cs" />
     <Compile Include="BuildExecution.cs" />
-    <Compile Include="BuildGlobToExtCommand.cs" />
-    <Compile Include="BuildGlobToExtContext.cs" />
-    <Compile Include="BuildGlobToExtTask.cs" />
+    <Compile Include="GlobBuildCommand.cs" />
+    <Compile Include="GlobBuildContext.cs" />
+    <Compile Include="GlobBuildTask.cs" />
     <Compile Include="Building.cs" />
     <Compile Include="BuildTask.cs" />
     <Compile Include="FileUtils.cs" />
