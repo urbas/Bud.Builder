@@ -34,12 +34,13 @@ namespace Bud {
       } finally {
         var taskSignaturesDir = Path.Combine(baseDir, TaskSignaturesDirName);
         DeleteExtraneousFiles(taskSignaturesDir,
-                              new HashSet<string>(ToSignatureFiles(signatures2Tasks.Keys, taskSignaturesDir)));
+                              ToSignatureFiles(signatures2Tasks.Keys, taskSignaturesDir));
       }
     }
 
-    private static IEnumerable<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
-      => signatures.Select(signature => Path.Combine(taskSignaturesDir, signature));
+    private static IImmutableSet<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
+      => signatures.Select(signature => Path.Combine(taskSignaturesDir, signature))
+                   .ToImmutableHashSet();
 
     private static int CountTasks(ICollection<BuildTask> tasks)
       => tasks.Count + tasks.Select(task => CountTasks(task.Dependencies)).Sum();
@@ -50,10 +51,10 @@ namespace Bud {
                                          ConcurrentDictionary<string, BuildTask> signatures2Tasks,
                                          ConcurrentDictionary<string, BuildTask> outputFiles2Tasks) {
       TaskGraph taskGraph;
-      return task2TaskGraphs.TryGetValue(buildTask, out taskGraph) ?
-               taskGraph :
-               CreateTaskGraph(task2TaskGraphs, stdout, buildTask, buildTaskNumberAssigner, buildStopwatch, baseDir,
-                               metaDir, signatures2Tasks, outputFiles2Tasks);
+      return task2TaskGraphs.TryGetValue(buildTask, out taskGraph)
+               ? taskGraph
+               : CreateTaskGraph(task2TaskGraphs, stdout, buildTask, buildTaskNumberAssigner, buildStopwatch, baseDir,
+                                 metaDir, signatures2Tasks, outputFiles2Tasks);
     }
 
     private static TaskGraph CreateTaskGraph(IDictionary<BuildTask, TaskGraph> task2TaskGraphs,
@@ -79,13 +80,12 @@ namespace Bud {
 
         var taskSignatureFile = Path.Combine(buildContext.TaskSignaturesDir, buildResult.Signature);
         if (!buildResult.OutputFiles.All(File.Exists) || !File.Exists(taskSignatureFile)) {
-          buildTask.Execute(buildContext);
+          buildTask.Execute(buildContext, buildResult);
         }
 
         MarkTaskFinished(signatures2Tasks, buildTask, buildResult.Signature);
         Directory.CreateDirectory(buildContext.TaskSignaturesDir);
         File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
-
       }, taskGraphs);
       task2TaskGraphs.Add(buildTask, taskGraph);
       return taskGraph;

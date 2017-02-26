@@ -109,41 +109,42 @@ namespace Bud {
       Salt = salt;
     }
 
+    /// <inheritdoc />
     public override BuildResult ExpectedResult(BuildContext ctx) {
-      var sourceDir = ToAbsDir(SourceDir, ctx.BaseDir);
-      var sources = FindFiles(sourceDir, SourceExt);
-      var rootDirUri = new Uri($"{sourceDir}/");
-      var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
+      var absoluteSourceDir = AbsoluteSourceDir(ctx);
+      var absoluteOutputDir = AbsoluteOutputDir(ctx);
+      var rootDirUri = new Uri($"{absoluteSourceDir}/");
+
+      var sources = FindFiles(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
 
       var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
-                                       .Select(relativePath => ToOutputPath(outputDir, relativePath))
+                                       .Select(relativePath => ToOutputPath(absoluteOutputDir, relativePath))
                                        .ToImmutableHashSet();
 
       var hexSignature = ToHexStringFromBytes(CalculateTaskSignature(sources));
 
-      return new BuildResult(outputFiles: expectedOutputFiles, signature: hexSignature);
+      return new BuildResult(inputFiles: sources, outputFiles: expectedOutputFiles, signature: hexSignature);
     }
 
     /// <inheritdoc />
-    public override void Execute(BuildContext ctx) {
-      var sourceDir = ToAbsDir(SourceDir, ctx.BaseDir);
-      var sources = FindFiles(sourceDir, SourceExt);
-      var rootDirUri = new Uri($"{sourceDir}/");
-      var outputDir = Path.Combine(ctx.BaseDir, OutputDir);
+    public override void Execute(BuildContext ctx, BuildResult expectedBuildResult) {
+      var absoluteSourceDir = AbsoluteSourceDir(ctx);
+      var absoluteOutputDir = AbsoluteOutputDir(ctx);
 
-      var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
-                                       .Select(relativePath => ToOutputPath(outputDir, relativePath))
-                                       .ToImmutableHashSet();
-
-      DeleteExtraneousFiles(outputDir, expectedOutputFiles, OutputExt);
+      DeleteExtraneousFiles(absoluteOutputDir, expectedBuildResult.OutputFiles, OutputExt);
 
       Action command = () => {
-        var buildGlobToExtContext = new GlobBuildContext(ctx, sources, sourceDir, SourceExt, outputDir, OutputExt);
+        var buildGlobToExtContext = new GlobBuildContext(ctx, expectedBuildResult.InputFiles, absoluteSourceDir,
+                                                         SourceExt, absoluteOutputDir, OutputExt);
         Command(buildGlobToExtContext);
       };
 
       command();
     }
+
+    private string AbsoluteOutputDir(IBuildContext ctx) => Path.Combine(ctx.BaseDir, OutputDir);
+
+    private string AbsoluteSourceDir(IBuildContext ctx) => ToAbsDir(SourceDir, ctx.BaseDir);
 
     private string ToOutputPath(string outputDir, string relativePath)
       => Path.Combine(outputDir,

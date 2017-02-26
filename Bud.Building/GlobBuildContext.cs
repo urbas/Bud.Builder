@@ -15,7 +15,7 @@ namespace Bud {
     /// <summary>
     ///   Creates a new context with the given information.
     /// </summary>
-    public GlobBuildContext(BuildContext ctx, ImmutableArray<string> sources, string sourceDir, string sourcesExt, string outputDir, string outputExt) {
+    public GlobBuildContext(BuildContext ctx, IImmutableSet<string> sources, string sourceDir, string sourcesExt, string outputDir, string outputExt) {
       Context = ctx;
       Sources = sources;
       SourceDir = sourceDir;
@@ -60,7 +60,7 @@ namespace Bud {
     /// <summary>
     /// The sources this task should build.
     /// </summary>
-    public ImmutableArray<string> Sources { get; }
+    public IImmutableSet<string> Sources { get; }
 
     /// <summary>
     ///   The directory where source files will be searched for.

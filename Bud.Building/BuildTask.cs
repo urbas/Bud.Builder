@@ -42,6 +42,7 @@ namespace Bud {
     ///   context.
     /// </param>
     /// <returns>the expected result of this task.</returns>
+    /// <remarks>This method is called only after tasks on which this task depends have already executed.</remarks>
     public abstract BuildResult ExpectedResult(BuildContext ctx);
 
     /// <summary>
@@ -50,10 +51,12 @@ namespace Bud {
     /// <param name="ctx">
     ///   This object contains a bunch of information for this task. Note: each task gets its own context.
     /// </param>
+    /// <param name="expectedBuildResult">the expected build results produced by the <see cref="ExpectedResult"/>
+    /// method.</param>
     /// <remarks>
     ///   This method is blocking and will be called in parallel with <see cref="Execute"/> methods of other build
     ///   tasks.
     /// </remarks>
-    public abstract void Execute(BuildContext ctx);
+    public abstract void Execute(BuildContext ctx, BuildResult expectedBuildResult);
   }
 }
