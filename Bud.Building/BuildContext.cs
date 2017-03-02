@@ -21,7 +21,7 @@ namespace Bud {
       ThisTaskNumber = thisTaskNumber;
       TotalTasks = totalTasks;
       BaseDir = baseDir;
-      TaskSignaturesDir = Path.Combine(BaseDir, BuildExecution.TaskSignaturesDirName);
+      TaskSignaturesDir = Path.Combine(BaseDir, Building.TaskSignaturesDirName);
     }
 
     /// <summary>

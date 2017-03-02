@@ -38,7 +38,7 @@ namespace Bud {
       try {
         new TaskGraph(buildTasks.Select(GetOrCreateTaskGraph)).Run();
       } finally {
-        var taskSignaturesDir = Path.Combine(baseDir, BuildExecution.TaskSignaturesDirName);
+        var taskSignaturesDir = Path.Combine(baseDir, Building.TaskSignaturesDirName);
         FileUtils.DeleteExtraneousFiles(taskSignaturesDir, ToSignatureFiles(signatures2Tasks.Keys, taskSignaturesDir));
       }
     }

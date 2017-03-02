@@ -1,11 +1,28 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Bud {
   /// <summary>
   ///   Provides static functions for defining and executing builds.
   /// </summary>
   public static class Building {
+    /// <summary>
+    ///   The default name of the directory where the build executor will put all the build meta data.
+    /// </summary>
+    /// <remarks>
+    ///   Examples of build metadata:
+    ///
+    ///     -  task signatures of the last execution.
+    /// </remarks>
+    public const string BuildMetaDirName = ".bud";
+
+    /// <summary>
+    ///   The name of the directory that contains task signatures. This directory lives under the build meta data
+    ///   directory.
+    /// </summary>
+    public const string TaskSignaturesDirName = "task_signatures";
+
     /// <summary>
     ///   Creates a build task where multiple sources are built into multiple output files.
     /// </summary>
@@ -53,7 +70,11 @@ namespace Bud {
     public static void RunBuild(IEnumerable<BuildTask> tasks,
                                 TextWriter stdout = null,
                                 string baseDir = null,
-                                string metaDir = null)
-      => BuildExecution.RunBuild(tasks, stdout, baseDir, metaDir);
+                                string metaDir = null) {
+      var buildTasks = tasks as IList<BuildTask> ?? tasks.ToList();
+      baseDir = baseDir ?? Directory.GetCurrentDirectory();
+      metaDir = metaDir ?? Path.Combine(baseDir, BuildMetaDirName);
+      new ExecutionEngine(stdout, buildTasks, baseDir, metaDir).ExecuteBuild();
+    }
   }
 }

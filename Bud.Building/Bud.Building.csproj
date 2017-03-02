@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildContext.cs" />
-    <Compile Include="BuildExecution.cs" />
     <Compile Include="BuildResult.cs" />
     <Compile Include="ExecutionEngine.cs" />
     <Compile Include="GlobBuildCommand.cs" />
