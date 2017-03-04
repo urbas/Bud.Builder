@@ -17,7 +17,7 @@ namespace Bud {
   /// that could influence the output files.
   /// </para>
   /// </remarks>
-  public class TaskSigner {
+  public class Sha256Signer {
     private byte[] hash;
     private readonly SHA256 hashAlgorithm;
     private readonly byte[] buffer;
@@ -27,7 +27,7 @@ namespace Bud {
     /// this buffer must be at least 4-bytes long.</param>
     /// <exception cref="ArgumentException">this exception is thrown when the buffer is less than 4 bytes
     /// long.</exception>
-    public TaskSigner(byte[] buffer = null) {
+    public Sha256Signer(byte[] buffer = null) {
       if (buffer == null) {
         this.buffer = new byte[1 << 15];
       } else {
@@ -45,7 +45,7 @@ namespace Bud {
     /// </summary>
     /// <param name="str">the string to add to the signature by passing it to the hashing algorithm.</param>
     /// <returns>this task signer.</returns>
-    public TaskSigner Digest(string str) {
+    public Sha256Signer Digest(string str) {
       var blockMaxCharCount = buffer.Length >> 2;
       var strLength = str.Length;
       for (int charsDigested = 0; charsDigested < strLength; charsDigested += blockMaxCharCount) {
@@ -57,7 +57,7 @@ namespace Bud {
 
     /// <param name="bytes">these byte array will be added to the signature by passing it to the hash algorith.</param>
     /// <returns>this task signer.</returns>
-    public TaskSigner Digest(byte[] bytes) {
+    public Sha256Signer Digest(byte[] bytes) {
       hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
       return this;
     }
@@ -67,7 +67,7 @@ namespace Bud {
     /// <remarks>
     ///   This method digests each file with the <see cref="DigestSource"/> method.
     /// </remarks>
-    public TaskSigner DigestSources(IEnumerable<string> sources) {
+    public Sha256Signer DigestSources(IEnumerable<string> sources) {
       foreach (var source in sources) {
         DigestSource(source);
       }
@@ -78,7 +78,7 @@ namespace Bud {
     /// <returns>this task signer.</returns>
     /// <remarks>This method first digests the path of the file (the <paramref name="file"/> string) and then
     /// it digests the contents of the file.</remarks>
-    public TaskSigner DigestSource(string file) {
+    public Sha256Signer DigestSource(string file) {
       Digest(file);
       using (var fileStream = File.OpenRead(file)) {
         int readBytes;
@@ -94,7 +94,7 @@ namespace Bud {
     /// Finalizes the signature and makes it available in the <see cref="Signature"/> property.
     /// </summary>
     /// <returns>this task signer.</returns>
-    public TaskSigner Finish() {
+    public Sha256Signer Finish() {
       hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
       hash = hashAlgorithm.Hash;
       return this;

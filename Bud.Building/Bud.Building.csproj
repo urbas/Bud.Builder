@@ -64,7 +64,7 @@
     <Compile Include="IBuildContext.cs" />
     <Compile Include="LogMessages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TaskSigner.cs" />
+    <Compile Include="Sha256Signer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -155,7 +155,7 @@ namespace Bud {
     public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
 
     private byte[] CalculateTaskSignature(IEnumerable<string> sources)
-      => new TaskSigner().Digest("Sources")
+      => new Sha256Signer().Digest("Sources")
                          .DigestSources(sources)
                          .Digest("SourceDir")
                          .Digest(SourceDir)
