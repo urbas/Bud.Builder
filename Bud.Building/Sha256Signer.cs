@@ -103,8 +103,12 @@ namespace Bud {
     /// <summary>
     /// The signature of the task.
     /// </summary>
-    /// <exception cref="Exception">this is thrown if the <see cref="Finish"/> method hasn't been called
-    /// yet.</exception>
+    /// <exception cref="Exception">
+    ///   this is thrown if the <see cref="Finish"/> method hasn't been called yet.
+    /// </exception>
+    /// <remarks>
+    ///   This method returns clones of the byte signature byte array.
+    /// </remarks>
     public byte[] Signature {
       get {
         if (hash == null) {
