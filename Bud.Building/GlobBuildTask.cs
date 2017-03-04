@@ -133,13 +133,10 @@ namespace Bud {
 
       DeleteExtraneousFiles(absoluteOutputDir, expectedBuildResult.OutputFiles, OutputExt);
 
-      Action command = () => {
-        var buildGlobToExtContext = new GlobBuildContext(ctx, expectedBuildResult.InputFiles, absoluteSourceDir,
-                                                         SourceExt, absoluteOutputDir, OutputExt);
-        Command(buildGlobToExtContext);
-      };
+      var globBuildContext = new GlobBuildContext(ctx, expectedBuildResult.InputFiles, absoluteSourceDir, SourceExt,
+                                                  absoluteOutputDir, OutputExt);
 
-      command();
+      Command(globBuildContext);
     }
 
     private string AbsoluteOutputDir(IBuildContext ctx) => Path.Combine(ctx.BaseDir, OutputDir);
@@ -156,16 +153,16 @@ namespace Bud {
 
     private byte[] CalculateTaskSignature(IEnumerable<string> sources)
       => new Sha256Signer().Digest("Sources")
-                         .DigestSources(sources)
-                         .Digest("SourceDir")
-                         .Digest(SourceDir)
-                         .Digest("SourceExt")
-                         .Digest(SourceExt)
-                         .Digest("OutputDir")
-                         .Digest(OutputDir)
-                         .Digest("OutputExt")
-                         .Digest(OutputExt)
-                         .Finish()
-                         .Signature;
+                           .DigestSources(sources)
+                           .Digest("SourceDir")
+                           .Digest(SourceDir)
+                           .Digest("SourceExt")
+                           .Digest(SourceExt)
+                           .Digest("OutputDir")
+                           .Digest(OutputDir)
+                           .Digest("OutputExt")
+                           .Digest(OutputExt)
+                           .Finish()
+                           .Signature;
   }
 }
