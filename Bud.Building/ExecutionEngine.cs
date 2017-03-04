@@ -24,7 +24,7 @@ namespace Bud {
     private readonly int totalTasks;
     private int lastAssignedNumber;
 
-    public ExecutionEngine(TextWriter stdout, IList<BuildTask> buildTasks, string baseDir, string metaDir) {
+    public ExecutionEngine(IList<BuildTask> buildTasks, string baseDir, string metaDir, TextWriter stdout) {
       this.stdout = stdout;
       this.buildTasks = buildTasks;
       this.baseDir = baseDir;
@@ -51,8 +51,13 @@ namespace Bud {
     private TaskGraph CreateTaskGraph(BuildTask buildTask) {
       var dependenciesTaskGraphs = buildTask.Dependencies.Select(GetOrCreateTaskGraph).ToImmutableArray();
       var buildContext = new BuildContext(stdout, buildStopwatch, NextTaskNumber(), totalTasks, baseDir);
+      var taskGraph = ToTaskGraph(buildTask, dependenciesTaskGraphs, buildContext);
+      task2TaskGraphs.Add(buildTask, taskGraph);
+      return taskGraph;
+    }
 
-      var taskGraph = new TaskGraph(() => {
+    private TaskGraph ToTaskGraph(BuildTask buildTask, ImmutableArray<TaskGraph> dependenciesTaskGraphs, BuildContext buildContext)
+      => new TaskGraph(() => {
         var expectedBuildResult = buildTask.ExpectedResult(buildContext);
         RegisterOutputFiles(outputFiles2Tasks, buildTask, expectedBuildResult.OutputFiles);
 
@@ -65,9 +70,6 @@ namespace Bud {
         Directory.CreateDirectory(buildContext.TaskSignaturesDir);
         File.WriteAllBytes(taskSignatureFile, Array.Empty<byte>());
       }, dependenciesTaskGraphs);
-      task2TaskGraphs.Add(buildTask, taskGraph);
-      return taskGraph;
-    }
 
     private static IImmutableSet<string> ToSignatureFiles(IEnumerable<string> signatures, string taskSignaturesDir)
       => signatures.Select(signature => Path.Combine(taskSignaturesDir, signature))

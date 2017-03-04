@@ -74,7 +74,7 @@ namespace Bud {
       var buildTasks = tasks as IList<BuildTask> ?? tasks.ToList();
       baseDir = baseDir ?? Directory.GetCurrentDirectory();
       metaDir = metaDir ?? Path.Combine(baseDir, BuildMetaDirName);
-      new ExecutionEngine(stdout, buildTasks, baseDir, metaDir).ExecuteBuild();
+      new ExecutionEngine(buildTasks, baseDir, metaDir, stdout).ExecuteBuild();
     }
   }
 }
