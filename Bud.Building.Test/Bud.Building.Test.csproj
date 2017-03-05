@@ -68,6 +68,7 @@
     <Compile Include="GlobBuildTaskTest.cs" />
     <Compile Include="FilesUtilsTest.cs" />
     <Compile Include="HexUtilsTest.cs" />
+    <Compile Include="IsodExecutionEngineTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sha256SignerTest.cs" />
     <Compile Include="TesterAppPath.cs" />
