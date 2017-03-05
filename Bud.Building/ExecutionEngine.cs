@@ -7,6 +7,32 @@ using System.IO;
 using System.Linq;
 
 namespace Bud {
+  /// <summary>
+  ///   Assuming that task A has not yet been executed. Here's how this execution engine will execute task A:
+  ///
+  ///     - Retrieve the signature of task A.
+  ///
+  ///     - There is no output directory that corresponds to the signature.
+  ///
+  ///     - Create a directory where the task should place its output files.
+  ///
+  ///     - Create a build context for the task. The build context contains the path of the output directory where the
+  ///       task should place its files, a list of output directories of the task's dependencies, and some other
+  ///       ancillary information.
+  ///
+  ///     - Execute the task and wait for it to finish.
+  ///
+  ///
+  ///   Assuming that task A was already executed. Here's how this exection engine will execute task A:
+  ///
+  ///     - Retrieve the signature of task A.
+  ///
+  ///     - Find the task output directory that corresponds to the signature.
+  ///
+  ///     - The directory is present.
+  ///
+  ///     - Do not execute the task.
+  /// </summary>
   internal class ExecutionEngine {
     private readonly TextWriter stdout;
     private readonly IList<BuildTask> buildTasks;
