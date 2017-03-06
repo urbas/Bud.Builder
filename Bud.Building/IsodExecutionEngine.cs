@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
+using System.IO;
+using System.Linq;
 
 namespace Bud {
   /// <summary>
@@ -47,13 +51,35 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string baseDir, string buildDir, BuildTask[] buildTasks) {
-      throw new System.NotImplementedException();
+    public static EntireBuildResult Execute(string baseDir, string buildDir, params IBuildTask[] buildTasks) {
+      foreach (var buildTask in buildTasks) {
+        buildTask.Execute(buildDir);
+      }
+      return new EntireBuildResult(Directory.EnumerateFiles(buildDir, "*", SearchOption.AllDirectories).ToImmutableArray());
     }
   }
+
+  public interface IBuildTask {
+    void Execute(string buildDir);
+  }
+
+  public class TaskResult { }
 
   /// <summary>
   ///   This class contains a map of build tasks and their output directories.
   /// </summary>
-  public class EntireBuildResult { }
+  public class EntireBuildResult {
+    /// <summary>
+    ///   Initializes the build result object.
+    /// </summary>
+    /// <param name="outputFiles">see <see cref="OutputFiles"/>.</param>
+    public EntireBuildResult(ImmutableArray<string> outputFiles) {
+      OutputFiles = outputFiles;
+    }
+
+    /// <summary>
+    ///   The list of all output files produced by the build.
+    /// </summary>
+    public ImmutableArray<string> OutputFiles { get; }
+  }
 }
