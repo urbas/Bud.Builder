@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -52,7 +53,22 @@ namespace Bud {
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
     public static EntireBuildResult Execute(string baseDir, string buildDir, params IBuildTask[] buildTasks) {
+      return Execute(baseDir, buildDir, buildTasks as IEnumerable<IBuildTask>);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="baseDir">the directory in which all the sources relevant to the build reside.</param>
+    /// <param name="buildDir">
+    ///   the directory in which all build output will be placed (including build metadata).
+    /// </param>
+    /// <param name="buildTasks">the build tasks to execute.</param>
+    /// <returns>an object containing information about the resulting build.</returns>
+    /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
+    public static EntireBuildResult Execute(string baseDir, string buildDir, IEnumerable<IBuildTask> buildTasks) {
       foreach (var buildTask in buildTasks) {
+        Execute(baseDir, buildDir, buildTask.Dependencies);
         buildTask.Execute(buildDir);
       }
       return new EntireBuildResult(Directory.EnumerateFiles(buildDir, "*", SearchOption.AllDirectories).ToImmutableArray());
@@ -61,6 +77,7 @@ namespace Bud {
 
   public interface IBuildTask {
     void Execute(string buildDir);
+    ImmutableArray<IBuildTask> Dependencies { get; }
   }
 
   public class TaskResult { }
