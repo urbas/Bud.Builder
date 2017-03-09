@@ -50,9 +50,8 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string baseDir, string buildDir, params IBuildTask[] buildTasks) {
-      return Execute(baseDir, buildDir, buildTasks as IEnumerable<IBuildTask>);
-    }
+    public static EntireBuildResult Execute(string baseDir, string buildDir, params IBuildTask[] buildTasks)
+      => Execute(baseDir, buildDir, buildTasks as IEnumerable<IBuildTask>);
 
     /// <summary>
     ///
