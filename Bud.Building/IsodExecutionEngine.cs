@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
+using static System.IO.Directory;
+using static System.IO.Path;
+using static System.IO.SearchOption;
 
 namespace Bud {
   /// <summary>
@@ -43,38 +45,48 @@ namespace Bud {
     /// <summary>
     ///
     /// </summary>
-    /// <param name="baseDir">the directory in which all the sources relevant to the build reside.</param>
+    /// <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
     /// <param name="buildDir">
     ///   the directory in which all build output will be placed (including build metadata).
     /// </param>
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string baseDir, string buildDir, params IBuildTask[] buildTasks)
-      => Execute(baseDir, buildDir, buildTasks as IEnumerable<IBuildTask>);
+    public static EntireBuildResult Execute(string sourceDir, string buildDir, params IBuildTask[] buildTasks)
+      => Execute(sourceDir, buildDir, buildTasks as IEnumerable<IBuildTask>);
 
     /// <summary>
     ///
     /// </summary>
-    /// <param name="baseDir">the directory in which all the sources relevant to the build reside.</param>
+    /// <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
     /// <param name="buildDir">
     ///   the directory in which all build output will be placed (including build metadata).
     /// </param>
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string baseDir, string buildDir, IEnumerable<IBuildTask> buildTasks) {
+    public static EntireBuildResult Execute(string sourceDir, string buildDir, IEnumerable<IBuildTask> buildTasks) {
       foreach (var buildTask in buildTasks) {
-        Execute(baseDir, buildDir, buildTask.Dependencies);
-        buildTask.Execute(buildDir);
+        Execute(sourceDir, buildDir, buildTask.Dependencies);
+        var taskSignature = buildTask.Signature();
+        var taskOutputDir = Combine(buildDir, "output_cache", taskSignature);
+        if (Exists(taskOutputDir)) {
+        } else {
+          var taskUnfinishedOutputDir = Combine(buildDir, "unfinished_output_cache", taskSignature);
+          CreateDirectory(taskUnfinishedOutputDir);
+          buildTask.Execute(taskUnfinishedOutputDir);
+          CreateDirectory(Combine(buildDir, "output_cache"));
+          Move(taskUnfinishedOutputDir, taskOutputDir);
+        }
       }
-      return new EntireBuildResult(Directory.EnumerateFiles(buildDir, "*", SearchOption.AllDirectories).ToImmutableArray());
+      return new EntireBuildResult(EnumerateFiles(buildDir, "*", AllDirectories).ToImmutableArray());
     }
   }
 
   public interface IBuildTask {
     void Execute(string buildDir);
     ImmutableArray<IBuildTask> Dependencies { get; }
+    string Signature();
   }
 
   public class TaskResult { }

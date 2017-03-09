@@ -50,6 +50,14 @@ namespace Bud {
         File.WriteAllText(Path.Combine(buildDir, fileName), fileContents);
       });
 
+      var signatureBytes = new Sha256Signer().Digest("MockFileGenerator")
+                                             .Digest(fileName)
+                                             .Digest(fileContents)
+                                             .Finish()
+                                             .Signature;
+
+      fileGeneratorMock.Setup(f => f.Signature()).Returns(HexUtils.ToHexStringFromBytes(signatureBytes));
+
       return fileGeneratorMock;
     }
   }
