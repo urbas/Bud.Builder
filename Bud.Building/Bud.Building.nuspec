@@ -17,6 +17,7 @@
     <copyright>Copyright 2016</copyright>
     <tags>Bud.Building initial release.</tags>
     <dependencies>
+      <dependency id="Bud.Exec" version="2.1.1" />
       <dependency id="Bud.TaskGraph" version="1.1.0" />
       <dependency id="System.Collections.Immutable" version="1.2.0" />
     </dependencies>
