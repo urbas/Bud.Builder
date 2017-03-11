@@ -25,8 +25,8 @@ namespace Bud {
 
         var buildResult = IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTask);
 
-        FileAssert.AreEqual(tmpDir.CreateFile("9001"), buildResult.OutputFiles[0]);
-        FileAssert.AreEqual(tmpDir.CreateFile("42"), buildResult.OutputFiles[1]);
+        FileAssert.AreEqual(tmpDir.CreateFile("42"), buildResult.OutputFiles[0]);
+        FileAssert.AreEqual(tmpDir.CreateFile("9001"), buildResult.OutputFiles[1]);
       }
     }
 

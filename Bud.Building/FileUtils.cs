@@ -26,7 +26,7 @@ namespace Bud {
     /// <returns>a list of relative file paths.</returns>
     public static IEnumerable<string> FindFilesRelative(string dir, string searchPattern = "*",
                                                         SearchOption searchOption = SearchOption.AllDirectories) {
-      var taskOutputDirUri = new Uri($"{dir}/");
+      var taskOutputDirUri = new Uri(dir + Path.DirectorySeparatorChar);
       return FindFiles(dir, searchPattern, searchOption)
         .Select(path => taskOutputDirUri.MakeRelativeUri(new Uri(path)).ToString());
     }
