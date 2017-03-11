@@ -66,31 +66,34 @@ namespace Bud {
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
     public static EntireBuildResult Execute(string sourceDir, string buildDir, IEnumerable<IBuildTask> buildTasks) {
-      var buildExecutionContext = new BuildExecutionContext();
-      ExecuteImpl(buildDir, buildTasks, buildExecutionContext);
+      var buildExecutionContext = new BuildExecutionContext(sourceDir, buildDir);
+      ExecuteImpl(buildExecutionContext, buildTasks);
       var buildResult = new EntireBuildResult(buildExecutionContext.OutputFiles);
       return buildResult;
     }
 
-    private static void ExecuteImpl(string buildDir, IEnumerable<IBuildTask> buildTasks, BuildExecutionContext buildExecutionContext) {
+    private static void ExecuteImpl(BuildExecutionContext buildExecutionContext, IEnumerable<IBuildTask> buildTasks) {
+      var unfinishedOutputDir = Combine(buildExecutionContext.BuildDir, ".unfinished_output");
+      var outputCache = Combine(buildExecutionContext.BuildDir, ".output_cache");
+      CreateDirectory(outputCache);
+      CreateDirectory(unfinishedOutputDir);
+
       foreach (var buildTask in buildTasks) {
-        ExecuteImpl(buildDir, buildTask.Dependencies, buildExecutionContext);
+        ExecuteImpl(buildExecutionContext, buildTask.Dependencies);
         var taskSignature = buildTask.Signature;
-        var taskOutputDir = Combine(buildDir, "output_cache", taskSignature);
-        if (Exists(taskOutputDir)) { } else {
-          ExecuteBuildTask(buildTask, taskSignature, buildDir, taskOutputDir);
+        var taskOutputDir = Combine(outputCache, taskSignature);
+        if (!Exists(taskOutputDir)) {
+          var unfinishedTaskOutputDir = Combine(unfinishedOutputDir, taskSignature);
+          ExecuteBuildTask(buildTask, unfinishedTaskOutputDir, taskOutputDir);
         }
         CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
       }
     }
 
-    private static void ExecuteBuildTask(IBuildTask buildTask, string taskSignature, string buildDir,
-                                         string taskOutputDir) {
-      var taskUnfinishedOutputDir = Combine(buildDir, "unfinished_output", taskSignature);
-      CreateDirectory(taskUnfinishedOutputDir);
-      buildTask.Execute(taskUnfinishedOutputDir);
-      CreateDirectory(Combine(buildDir, "output_cache"));
-      Move(taskUnfinishedOutputDir, taskOutputDir);
+    private static void ExecuteBuildTask(IBuildTask buildTask, string unfinishedTaskOutputDir, string taskOutputDir) {
+      CreateDirectory(unfinishedTaskOutputDir);
+      buildTask.Execute(unfinishedTaskOutputDir);
+      Move(unfinishedTaskOutputDir, taskOutputDir);
     }
 
     private static void CollectBuildTaskOutput(BuildExecutionContext outputFilesToTasks, IBuildTask buildTask,
@@ -102,19 +105,27 @@ namespace Bud {
           throw new Exception($"Tasks '{otherTask.Name}' and '{buildTask.Name}' are clashing. " +
                               $"They produced the same file '{outputFile}'.");
         }
-        outputFilesToTasks.AddOutputFile(outputFile, buildTask, taskOutputDir);
+        outputFilesToTasks.AddOutputFile(taskOutputDir, outputFile, buildTask);
       }
     }
 
     private class BuildExecutionContext {
+      public string SourceDir { get; }
+      public string BuildDir { get; }
       private readonly Dictionary<string, IBuildTask> outputFilesToBuildTasks = new Dictionary<string, IBuildTask>();
       private readonly List<string> outputFilesAbsPaths = new List<string>();
+
+      public BuildExecutionContext(string sourceDir, string buildDir) {
+        SourceDir = sourceDir;
+        BuildDir = buildDir;
+      }
+
       public ImmutableArray<string> OutputFiles => outputFilesAbsPaths.ToImmutableArray();
 
       public bool TryGetFile(string outputFile, out IBuildTask buildTask)
         => outputFilesToBuildTasks.TryGetValue(outputFile, out buildTask);
 
-      public void AddOutputFile(string relativeOoutputFilePath, IBuildTask buildTask, string taskOutputDir) {
+      public void AddOutputFile(string taskOutputDir, string relativeOoutputFilePath, IBuildTask buildTask) {
         outputFilesToBuildTasks.Add(relativeOoutputFilePath, buildTask);
         outputFilesAbsPaths.Add(Combine(taskOutputDir, relativeOoutputFilePath));
       }
@@ -125,6 +136,12 @@ namespace Bud {
     void Execute(string buildDir);
     ImmutableArray<IBuildTask> Dependencies { get; }
     string Name { get; }
+
+    /// <summary>
+    ///   A hex string or a URL- and filename-safe Base64 string (i.e.: base64url). This signature should be a
+    ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
+    ///   environment variables, the task's algorithm, and other factors that affect the task's output.
+    /// </summary>
     string Signature { get; }
   }
 
