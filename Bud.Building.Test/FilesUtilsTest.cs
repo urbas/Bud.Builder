@@ -41,10 +41,6 @@ namespace Bud {
     }
 
     [Test]
-    public void FindFilesRelative_in_a_non_existing_dir()
-      => Assert.IsEmpty(FindFilesRelative("/foo/bar/does/not/exist", ""));
-
-    [Test]
     public void FindFilesRelative_single_file() {
       using (var dir = new TmpDir()) {
         dir.CreateEmptyFile("foo", "bar.txt");
@@ -56,8 +52,7 @@ namespace Bud {
     public void FindFilesRelative_recursive() {
       using (var dir = new TmpDir()) {
         dir.CreateEmptyFile("foo", "baz", "bar.txt");
-        Assert.AreEqual(new[] {Path.Combine("baz", "bar.txt")},
-                        FindFilesRelative(dir.CreateDir("foo")));
+        Assert.AreEqual(new[] {"baz/bar.txt"}, FindFilesRelative(dir.CreateDir("foo")));
       }
     }
 
