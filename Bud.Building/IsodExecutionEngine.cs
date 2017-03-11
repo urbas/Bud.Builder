@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using static System.IO.Directory;
 using static System.IO.Path;
 using static System.IO.SearchOption;
@@ -65,27 +66,54 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
     /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string sourceDir, string buildDir, IEnumerable<IBuildTask> buildTasks) {
+    public static EntireBuildResult Execute(string sourceDir, string buildDir, IEnumerable<IBuildTask> buildTasks)
+      => ExecuteImpl(buildDir, buildTasks, new Dictionary<string, IBuildTask>());
+
+    private static EntireBuildResult ExecuteImpl(string buildDir, IEnumerable<IBuildTask> buildTasks,
+                                                 Dictionary<string, IBuildTask> outputFilesToTasks) {
       foreach (var buildTask in buildTasks) {
-        Execute(sourceDir, buildDir, buildTask.Dependencies);
+        ExecuteImpl(buildDir, buildTask.Dependencies, outputFilesToTasks);
         var taskSignature = buildTask.Signature();
         var taskOutputDir = Combine(buildDir, "output_cache", taskSignature);
-        if (Exists(taskOutputDir)) {
-        } else {
-          var taskUnfinishedOutputDir = Combine(buildDir, "unfinished_output_cache", taskSignature);
-          CreateDirectory(taskUnfinishedOutputDir);
-          buildTask.Execute(taskUnfinishedOutputDir);
-          CreateDirectory(Combine(buildDir, "output_cache"));
-          Move(taskUnfinishedOutputDir, taskOutputDir);
+        if (Exists(taskOutputDir)) { } else {
+          ExecuteBuildTask(buildTask, taskSignature, buildDir, taskOutputDir);
         }
+        AssertNoClashes(outputFilesToTasks, buildTask, taskOutputDir);
       }
       return new EntireBuildResult(EnumerateFiles(buildDir, "*", AllDirectories).ToImmutableArray());
+    }
+
+    private static void ExecuteBuildTask(IBuildTask buildTask, string taskSignature, string buildDir, string taskOutputDir) {
+      var taskUnfinishedOutputDir = Combine(buildDir, "unfinished_output", taskSignature);
+      CreateDirectory(taskUnfinishedOutputDir);
+      buildTask.Execute(taskUnfinishedOutputDir);
+      CreateDirectory(Combine(buildDir, "output_cache"));
+      Move(taskUnfinishedOutputDir, taskOutputDir);
+    }
+
+    private static void AssertNoClashes(Dictionary<string, IBuildTask> outputFilesToTasks, IBuildTask buildTask, string taskOutputDir) {
+      var outputFiles = GetTaskRelativeOutputFiles(taskOutputDir).ToList();
+      foreach (var outputFile in outputFiles) {
+        IBuildTask otherTask;
+        if (outputFilesToTasks.TryGetValue(outputFile, out otherTask)) {
+          throw new Exception($"Tasks '{otherTask.Name}' and '{buildTask.Name}' are clashing. " +
+                              $"They produced the same file '{outputFile}'.");
+        }
+        outputFilesToTasks.Add(outputFile, buildTask);
+      }
+    }
+
+    private static IEnumerable<string> GetTaskRelativeOutputFiles(string taskOutputDir) {
+      var taskOutputDirUri = new Uri($"{taskOutputDir}/");
+      return EnumerateFiles(taskOutputDir, "*", AllDirectories)
+        .Select(path => taskOutputDirUri.MakeRelativeUri(new Uri(path)).ToString());
     }
   }
 
   public interface IBuildTask {
     void Execute(string buildDir);
     ImmutableArray<IBuildTask> Dependencies { get; }
+    string Name { get; }
     string Signature();
   }
 
