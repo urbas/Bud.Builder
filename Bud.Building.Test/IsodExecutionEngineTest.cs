@@ -76,7 +76,7 @@ namespace Bud {
                                              .Finish()
                                              .Signature;
 
-      fileGeneratorMock.Setup(f => f.Signature()).Returns(HexUtils.ToHexStringFromBytes(signatureBytes));
+      fileGeneratorMock.SetupGet(f => f.Signature).Returns(HexUtils.ToHexStringFromBytes(signatureBytes));
 
       return fileGeneratorMock;
     }

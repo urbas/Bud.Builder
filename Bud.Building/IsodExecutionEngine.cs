@@ -73,7 +73,7 @@ namespace Bud {
                                                  Dictionary<string, IBuildTask> outputFilesToTasks) {
       foreach (var buildTask in buildTasks) {
         ExecuteImpl(buildDir, buildTask.Dependencies, outputFilesToTasks);
-        var taskSignature = buildTask.Signature();
+        var taskSignature = buildTask.Signature;
         var taskOutputDir = Combine(buildDir, "output_cache", taskSignature);
         if (Exists(taskOutputDir)) { } else {
           ExecuteBuildTask(buildTask, taskSignature, buildDir, taskOutputDir);
@@ -114,7 +114,7 @@ namespace Bud {
     void Execute(string buildDir);
     ImmutableArray<IBuildTask> Dependencies { get; }
     string Name { get; }
-    string Signature();
+    string Signature { get; }
   }
 
   public class TaskResult { }
