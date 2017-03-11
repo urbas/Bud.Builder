@@ -68,7 +68,7 @@ namespace Bud {
 
       if (nibble < 0 || nibble > 0xf) {
         throw new ArgumentException($"The character '{hex}' is not a valid hexadecimal digit. " +
-                                    $"Allowed characters: 0-9, a-f, A-F.");
+                                    "Allowed characters: 0-9, a-f, A-F.");
       }
       return nibble;
     }

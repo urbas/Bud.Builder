@@ -1,15 +1,13 @@
 using System;
-using System.Collections.Immutable;
-using System.IO;
 using Moq;
 using NUnit.Framework;
 
 namespace Bud {
   public class IsodExecutionEngineTest {
     [Test]
-    public void TestExecute_Task() {
+    public void TestExecute() {
       using (var tmpDir = new TmpDir()) {
-        var fooTask = FileGenerator("createFoo", "foo", "42").Object;
+        var fooTask = MockBuildTasks.FileGenerator("createFoo", "foo", "42").Object;
 
         var buildResult = IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, fooTask);
 
@@ -20,8 +18,8 @@ namespace Bud {
     [Test]
     public void TestExecute_Dependencies() {
       using (var tmpDir = new TmpDir()) {
-        var fooTask = FileGenerator("createFoo", "foo", "42").Object;
-        var barTask = FileGenerator("createBar", "bar", "9001", fooTask).Object;
+        var fooTask = MockBuildTasks.FileGenerator("createFoo", "foo", "42").Object;
+        var barTask = MockBuildTasks.FileGenerator("createBar", "bar", "9001", fooTask).Object;
 
         var buildResult = IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTask);
 
@@ -33,7 +31,7 @@ namespace Bud {
     [Test]
     public void TestExecute_Once() {
       using (var tmpDir = new TmpDir()) {
-        var fooTaskMock = FileGenerator("createFoo", "foo", "42");
+        var fooTaskMock = MockBuildTasks.FileGenerator("createFoo", "foo", "42");
 
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, fooTaskMock.Object);
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, fooTaskMock.Object);
@@ -45,8 +43,8 @@ namespace Bud {
     [Test]
     public void TestExecute_ClashingOutput() {
       using (var tmpDir = new TmpDir()) {
-        var foo1TaskMock = FileGenerator("createFoo1", "foo", "1");
-        var foo2TaskMock = FileGenerator("createFoo2", "foo", "2", foo1TaskMock.Object);
+        var foo1TaskMock = MockBuildTasks.FileGenerator("createFoo1", "foo", "1");
+        var foo2TaskMock = MockBuildTasks.FileGenerator("createFoo2", "foo", "2", foo1TaskMock.Object);
 
         var exception = Assert.Throws<Exception>(() => {
           IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, foo2TaskMock.Object);
@@ -58,27 +56,19 @@ namespace Bud {
       }
     }
 
-    public static Mock<IBuildTask> FileGenerator(string taskName, string fileName, string fileContents, params IBuildTask[] dependencies) {
-      var fileGeneratorMock = new Mock<IBuildTask>();
+    [Test]
+    public void TestExecute_DependenciesChange() {
+      using (var tmpDir = new TmpDir()) {
+        var fooTaskMock = MockBuildTasks.FileGenerator("createFoo", "foo", "42");
+        var barTaskMock = MockBuildTasks.FileGenerator("createBar", "bar", "9001", fooTaskMock.Object);
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTaskMock.Object);
 
-      fileGeneratorMock.SetupGet(f => f.Name).Returns(taskName);
+        var changedFooTaskMock = MockBuildTasks.FileGenerator("createFoo", "foo", "changed");
+        var barTaskMock2 = MockBuildTasks.FileGenerator("createBar", "bar", "9001", changedFooTaskMock.Object);
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTaskMock2.Object);
 
-      fileGeneratorMock.SetupGet(f => f.Dependencies).Returns(dependencies.ToImmutableArray);
-
-      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<string>()))
-                       .Callback((string buildDir) => {
-                         File.WriteAllText(Path.Combine(buildDir, fileName), fileContents);
-                       });
-
-      var signatureBytes = new Sha256Signer().Digest("MockFileGenerator")
-                                             .Digest(fileName)
-                                             .Digest(fileContents)
-                                             .Finish()
-                                             .Signature;
-
-      fileGeneratorMock.SetupGet(f => f.Signature).Returns(HexUtils.ToHexStringFromBytes(signatureBytes));
-
-      return fileGeneratorMock;
+        barTaskMock2.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
+      }
     }
   }
 }
