@@ -70,5 +70,18 @@ namespace Bud {
         barTaskMock2.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
       }
     }
+
+    [Test]
+    public void TestExecute_DuplicateDependenciesExecutedOnce() {
+      using (var tmpDir = new TmpDir()) {
+        var fooTaskMock = MockBuildTasks.FileGenerator("createFoo", "foo", "42");
+        var barTaskMock = MockBuildTasks.FileGenerator("createBar", "bar", "9001",
+                                                       fooTaskMock.Object, fooTaskMock.Object);
+
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTaskMock.Object);
+
+        fooTaskMock.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
+      }
+    }
   }
 }

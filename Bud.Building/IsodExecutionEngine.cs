@@ -82,18 +82,26 @@ namespace Bud {
       var dependenciesResultsBuilder = ImmutableArray.CreateBuilder<BuildTaskResult>(buildTasks.Count);
 
       foreach (var buildTask in buildTasks) {
-        var buildTaskResults = ExecuteImpl(buildExecutionContext, buildTask.Dependencies);
-        var taskSignature = buildTask.GetSignature(buildTaskResults);
-        var taskOutputDir = Combine(outputCache, taskSignature);
-        if (!Exists(taskOutputDir)) {
-          var unfinishedTaskOutputDir = Combine(unfinishedOutputDir, taskSignature);
-          ExecuteBuildTask(buildTask, unfinishedTaskOutputDir, taskOutputDir);
-        }
-        CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
+        BuildTaskResult buildTaskResult;
+        if (!buildExecutionContext.TryGetBuildTaskResult(buildTask, out buildTaskResult)) {
+          var buildTaskResults = ExecuteImpl(buildExecutionContext, buildTask.Dependencies);
+          var taskSignature = buildTask.GetSignature(buildTaskResults);
+          var taskOutputDir = Combine(outputCache, taskSignature);
+          if (!Exists(taskOutputDir)) {
+            var unfinishedTaskOutputDir = Combine(unfinishedOutputDir, taskSignature);
+            ExecuteBuildTask(buildTask, unfinishedTaskOutputDir, taskOutputDir);
+          }
+          CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
 
-        dependenciesResultsBuilder.Add(new BuildTaskResult(buildTask, taskSignature, taskOutputDir,
-                                                           buildExecutionContext.GetAbsoluteOutputs(buildTask),
-                                       buildTaskResults));
+
+          buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir,
+                                                buildExecutionContext.GetAbsoluteOutputs(buildTask),
+                                                buildTaskResults);
+
+
+          buildExecutionContext.AddBuildTaskResult(buildTask, buildTaskResult);
+        }
+        dependenciesResultsBuilder.Add(buildTaskResult);
       }
 
       return dependenciesResultsBuilder.MoveToImmutable();
@@ -126,6 +134,9 @@ namespace Bud {
       private readonly List<string> outputFilesAbsPaths = new List<string>();
       private readonly Dictionary<IBuildTask, ImmutableArray<string>> buildTasksToAbsoluteOutputFiles
         = new Dictionary<IBuildTask, ImmutableArray<string>>();
+      private Dictionary<IBuildTask, BuildTaskResult> buildTasksToResults
+        = new Dictionary<IBuildTask, BuildTaskResult>();
+
 
       public BuildExecutionContext(string sourceDir, string buildDir) {
         SourceDir = sourceDir;
@@ -150,6 +161,12 @@ namespace Bud {
 
       public ImmutableArray<string> GetAbsoluteOutputs(IBuildTask buildTask)
         => buildTasksToAbsoluteOutputFiles[buildTask];
+
+      public void AddBuildTaskResult(IBuildTask buildTask, BuildTaskResult buildTaskResult)
+        => buildTasksToResults.Add(buildTask, buildTaskResult);
+
+      public bool TryGetBuildTaskResult(IBuildTask buildTask, out BuildTaskResult buildTaskResult)
+        => buildTasksToResults.TryGetValue(buildTask, out buildTaskResult);
     }
   }
 
@@ -168,11 +185,12 @@ namespace Bud {
   }
 
   public class BuildTaskResult {
+    private readonly IBuildTask buildTask;
+    public string TaskName => buildTask.Name;
     public string TaskSignature { get; }
     public string TaskOutputDir { get; }
     public ImmutableArray<string> OutputFiles { get; }
     public ImmutableArray<BuildTaskResult> DependenciesResults { get; }
-    private readonly IBuildTask buildTask;
 
     public BuildTaskResult(IBuildTask buildTask, string taskSignature, string taskOutputDir,
                            ImmutableArray<string> outputFiles, ImmutableArray<BuildTaskResult> dependenciesResults) {
@@ -183,7 +201,6 @@ namespace Bud {
       this.buildTask = buildTask;
     }
 
-    public string TaskName => buildTask.Name;
   }
 
   /// <summary>
