@@ -115,7 +115,7 @@ namespace Bud {
       var absoluteOutputDir = AbsoluteOutputDir(ctx);
       var rootDirUri = new Uri($"{absoluteSourceDir}/");
 
-      var sources = FindFiles(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
+      var sources = FindFilesByExt(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
 
       var expectedOutputFiles = sources.Select(src => rootDirUri.MakeRelativeUri(new Uri(src)).ToString())
                                        .Select(relativePath => ToOutputPath(absoluteOutputDir, relativePath))
