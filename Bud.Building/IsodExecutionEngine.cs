@@ -78,7 +78,7 @@ namespace Bud {
         if (Exists(taskOutputDir)) { } else {
           ExecuteBuildTask(buildTask, taskSignature, buildDir, taskOutputDir);
         }
-        AssertNoClashes(outputFilesToTasks, buildTask, taskOutputDir);
+        CollectBuildTaskOutput(outputFilesToTasks, buildTask, taskOutputDir);
       }
       return new EntireBuildResult(EnumerateFiles(buildDir, "*", AllDirectories).ToImmutableArray());
     }
@@ -91,7 +91,7 @@ namespace Bud {
       Move(taskUnfinishedOutputDir, taskOutputDir);
     }
 
-    private static void AssertNoClashes(Dictionary<string, IBuildTask> outputFilesToTasks, IBuildTask buildTask, string taskOutputDir) {
+    private static void CollectBuildTaskOutput(Dictionary<string, IBuildTask> outputFilesToTasks, IBuildTask buildTask, string taskOutputDir) {
       var outputFiles = GetTaskRelativeOutputFiles(taskOutputDir).ToList();
       foreach (var outputFile in outputFiles) {
         IBuildTask otherTask;
