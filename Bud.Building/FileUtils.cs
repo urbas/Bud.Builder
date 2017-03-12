@@ -98,12 +98,10 @@ namespace Bud {
       var sourceDirUri = new Uri($"{sourceDir}/");
       foreach (var absSourceDir in Directory.EnumerateDirectories(sourceDir, "*", SearchOption.AllDirectories)) {
         var relSourceDir = sourceDirUri.MakeRelativeUri(new Uri(absSourceDir)).ToString();
-        Console.WriteLine($"Creating dir: {Path.Combine(targetDir, relSourceDir)}");
         Directory.CreateDirectory(Path.Combine(targetDir, relSourceDir));
       }
       foreach (var absSourceFile in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories)) {
         var relSourceFile = sourceDirUri.MakeRelativeUri(new Uri(absSourceFile)).ToString();
-        Console.WriteLine($"Copying file: {Path.Combine(targetDir, relSourceFile)}");
         File.Copy(absSourceFile, Path.Combine(targetDir, relSourceFile), overwrite: true);
       }
     }
