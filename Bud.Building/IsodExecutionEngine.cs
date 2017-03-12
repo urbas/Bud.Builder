@@ -115,7 +115,6 @@ namespace Bud {
         }
         CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
 
-
         var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir,
                                                   buildExecutionContext.GetAbsoluteOutputs(buildTask),
                                                   buildTaskResults);
