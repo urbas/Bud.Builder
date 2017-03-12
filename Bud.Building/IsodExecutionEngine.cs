@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using static System.IO.Directory;
 using static System.IO.Path;
@@ -44,35 +46,44 @@ namespace Bud {
   ///   </ul>
   /// </remarks>
   public class IsodExecutionEngine {
-    /// <summary>
-    ///
-    /// </summary>
+    ///  <summary>
+    ///  </summary>
     /// <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
     /// <param name="buildDir">
     ///   the directory in which all build output will be placed (including build metadata).
     /// </param>
+    /// <param name="metaDir">the directory in which the execution engine will store temporary build artifacts and
+    /// build metadata.</param>
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
-    /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string sourceDir, string buildDir, params IBuildTask[] buildTasks)
-      => Execute(sourceDir, buildDir, buildTasks as IEnumerable<IBuildTask>);
+    ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
+    public static EntireBuildResult Execute(string sourceDir, string buildDir, string metaDir, params IBuildTask[] buildTasks)
+      => Execute(sourceDir, buildDir, metaDir, buildTasks as IEnumerable<IBuildTask>);
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
-    /// <param name="buildDir">
-    ///   the directory in which all build output will be placed (including build metadata).
-    /// </param>
+    ///  <summary>
+    ///  </summary>
+    ///  <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
+    ///  <param name="buildDir">
+    ///    the directory in which all build output will be placed (including build metadata).
+    ///  </param>
+    /// <param name="metaDir">the directory in which the execution engine will store temporary build artifacts and
+    /// build metadata.</param>
     /// <param name="buildTasks">the build tasks to execute.</param>
-    /// <returns>an object containing information about the resulting build.</returns>
-    /// <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static EntireBuildResult Execute(string sourceDir, string buildDir, IEnumerable<IBuildTask> buildTasks) {
-      var buildExecutionContext = new BuildExecutionContext(sourceDir, buildDir);
+    ///  <returns>an object containing information about the resulting build.</returns>
+    ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
+    public static EntireBuildResult Execute(string sourceDir, string buildDir, string metaDir, IEnumerable<IBuildTask> buildTasks) {
+      var buildExecutionContext = new BuildExecutionContext(sourceDir, buildDir, metaDir);
       try {
         new TaskGraph(buildTasks.Select(buildTask => GetOrCreateTaskGraph(buildExecutionContext, buildTask))).Run();
       } catch (AggregateException aggregateException) {
         throw aggregateException.InnerExceptions[0];
+      }
+
+      if (Exists(buildDir)) {
+        Delete(buildDir, true);
+      }
+      foreach (var taskOutputDir in buildExecutionContext.TaskOutputDirs) {
+        CopyTree(taskOutputDir, buildDir);
       }
 
       return new EntireBuildResult(buildExecutionContext.OutputFiles);
@@ -98,35 +109,33 @@ namespace Bud {
     private static TaskGraph ToTaskGraph(BuildExecutionContext buildExecutionContext, IBuildTask buildTask,
                                          ImmutableArray<TaskGraph> dependenciesTaskGraphs)
       => new TaskGraph(() => {
-        var dependenciesResultsBuilder = ImmutableArray.CreateBuilder<BuildTaskResult>(buildTask.Dependencies.Length);
+        var dependenciesResults = buildTask.Dependencies
+                                           .Select(buildExecutionContext.GetBuildTaskResult)
+                                           .ToImmutableArray();
 
-        var buildTaskResults = buildTask.Dependencies
-                                        .Select(buildExecutionContext.GetBuildTaskResult)
-                                        .ToImmutableArray();
-
-        var taskSignature = buildTask.GetSignature(buildTaskResults);
+        var taskSignature = buildTask.GetSignature(dependenciesResults);
 
         AssertUniqueSignature(buildExecutionContext, buildTask, taskSignature);
 
         var taskOutputDir = Combine(buildExecutionContext.DoneOutputsDir, taskSignature);
         if (!Exists(taskOutputDir)) {
           var partialTaskOutputDir = Combine(buildExecutionContext.PartialOutputsDir, taskSignature);
-          ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir);
+          ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, buildExecutionContext.SourceDir);
         }
         CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
 
         var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir,
                                                   buildExecutionContext.GetAbsoluteOutputs(buildTask),
-                                                  buildTaskResults);
+                                                  dependenciesResults);
 
 
         buildExecutionContext.AddBuildTaskResult(buildTask, buildTaskResult);
-        dependenciesResultsBuilder.Add(buildTaskResult);
       }, dependenciesTaskGraphs);
 
-    private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir) {
+    private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir,
+                                         string sourceDir) {
       CreateDirectory(partialTaskOutputDir);
-      buildTask.Execute(new BuildTaskContext(partialTaskOutputDir));
+      buildTask.Execute(new BuildTaskContext(partialTaskOutputDir, sourceDir));
       Move(partialTaskOutputDir, taskOutputDir);
     }
 
@@ -136,7 +145,7 @@ namespace Bud {
       var relativeOutputFilePaths = relativeOutputFilesEnumerable as IList<string> ?? relativeOutputFilesEnumerable.ToList();
       foreach (var outputFile in relativeOutputFilePaths) {
         IBuildTask otherTask;
-        if (outputFilesToTasks.TryGetBuildTask(outputFile, out otherTask)) {
+        if (outputFilesToTasks.TryGetBuildTaskForRelativeFile(outputFile, out otherTask)) {
           throw new Exception($"Tasks '{otherTask.Name}' and '{buildTask.Name}' are clashing. " +
                               $"They produced the same file '{outputFile}'.");
         }
@@ -153,7 +162,7 @@ namespace Bud {
     }
 
     private class BuildExecutionContext {
-      private readonly Dictionary<string, IBuildTask> outputFilesToBuildTasks = new Dictionary<string, IBuildTask>();
+      private readonly Dictionary<string, IBuildTask> relativeOutputFilesToBuildTasks = new Dictionary<string, IBuildTask>();
       private readonly List<string> outputFilesAbsPaths = new List<string>();
 
       private readonly Dictionary<IBuildTask, ImmutableArray<string>> buildTasksToAbsoluteOutputFiles
@@ -167,12 +176,15 @@ namespace Bud {
       private readonly ConcurrentDictionary<string, IBuildTask> signatureToBuildTask
         = new ConcurrentDictionary<string, IBuildTask>();
 
+      private List<string> taskOutputDirs = new List<string>();
 
-      public BuildExecutionContext(string sourceDir, string buildDir) {
+
+      public BuildExecutionContext(string sourceDir, string buildDir, string metaDir) {
         SourceDir = sourceDir;
         BuildDir = buildDir;
-        PartialOutputsDir = Combine(BuildDir, ".partial");
-        DoneOutputsDir = Combine(BuildDir, ".done");
+        MetaDir = metaDir;
+        PartialOutputsDir = Combine(MetaDir, ".partial");
+        DoneOutputsDir = Combine(MetaDir, ".done");
 
         CreateDirectory(DoneOutputsDir);
         CreateDirectory(PartialOutputsDir);
@@ -182,24 +194,28 @@ namespace Bud {
 
       public string BuildDir { get; }
 
+      public string MetaDir { get; }
+
       public string DoneOutputsDir { get; }
 
       public string PartialOutputsDir { get; }
 
       public ImmutableArray<string> OutputFiles => outputFilesAbsPaths.ToImmutableArray();
+      public IEnumerable<string> TaskOutputDirs => taskOutputDirs;
 
-      public bool TryGetBuildTask(string outputFile, out IBuildTask buildTask)
-        => outputFilesToBuildTasks.TryGetValue(outputFile, out buildTask);
+      public bool TryGetBuildTaskForRelativeFile(string relativeOutputFile, out IBuildTask buildTask)
+        => relativeOutputFilesToBuildTasks.TryGetValue(relativeOutputFile, out buildTask);
 
       public void AddOutputFiles(string taskOutputDir, IList<string> relativeOutputFilePaths, IBuildTask buildTask) {
         foreach (var relativeOutputFilePath in relativeOutputFilePaths) {
-          outputFilesToBuildTasks.Add(relativeOutputFilePath, buildTask);
+          relativeOutputFilesToBuildTasks.Add(relativeOutputFilePath, buildTask);
         }
         var absoluteOutputFilePaths = relativeOutputFilePaths
           .Select(relativeOutputFile => Combine(taskOutputDir, relativeOutputFile))
           .ToImmutableArray();
         outputFilesAbsPaths.AddRange(absoluteOutputFilePaths);
         buildTasksToAbsoluteOutputFiles.Add(buildTask, absoluteOutputFilePaths);
+        taskOutputDirs.Add(taskOutputDir);
       }
 
       public ImmutableArray<string> GetAbsoluteOutputs(IBuildTask buildTask)
@@ -237,9 +253,11 @@ namespace Bud {
 
   public class BuildTaskContext {
     public string OutputDir { get; }
+    public string SourceDir { get; }
 
-    public BuildTaskContext(string outputDir) {
+    public BuildTaskContext(string outputDir, string sourceDir) {
       OutputDir = outputDir;
+      SourceDir = sourceDir;
     }
   }
 

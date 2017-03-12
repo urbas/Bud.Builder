@@ -6,22 +6,31 @@ using Moq;
 
 namespace Bud {
   public static class MockBuildTasks {
-    public static Mock<IBuildTask> FileGenerator(string taskName, string fileName, string fileContents,
-                                                 params IBuildTask[] dependencies)
+    public static Mock<IBuildTask> GenerateFile(string taskName, string fileName, string fileContents,
+                                                params IBuildTask[] dependencies)
       => BareBuildTask(taskName, dependencies)
-        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(FileGenerator), "FileName:", fileName,
+        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(GenerateFile), "FileName:", fileName,
                                "Parameters:", fileContents)
         .WithExecuteAction(ctx => File.WriteAllText(Path.Combine(ctx.OutputDir, fileName), fileContents));
 
-    public static Mock<IBuildTask> ActionBuildTask(string taskName, Action buildAction,
-                                                   params IBuildTask[] dependencies)
+    public static Mock<IBuildTask> CopySourceFile(string taskName, string sourceFile, string outputFile,
+                                                  params IBuildTask[] dependencies)
       => BareBuildTask(taskName, dependencies)
-        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(ActionBuildTask))
+        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(CopySourceFile), "SourceFile:", sourceFile,
+                               "OutputFile:", outputFile)
+        .WithExecuteAction(ctx => File.Copy(Path.Combine(ctx.SourceDir, sourceFile),
+                                            Path.Combine(ctx.OutputDir, outputFile)));
+
+
+    public static Mock<IBuildTask> Action(string taskName, Action buildAction,
+                                          params IBuildTask[] dependencies)
+      => BareBuildTask(taskName, dependencies)
+        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(Action))
         .WithExecuteAction(ctx => buildAction());
 
-    public static Mock<IBuildTask> NoOpBuildTask(string taskName, params IBuildTask[] dependencies)
+    public static Mock<IBuildTask> NoOp(string taskName, params IBuildTask[] dependencies)
       => BareBuildTask(taskName, dependencies)
-        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(NoOpBuildTask));
+        .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(NoOp));
 
     public static Mock<IBuildTask> WithExecuteAction(this Mock<IBuildTask> buildTaskMock,
                                                      Action<BuildTaskContext> executeAction) {
