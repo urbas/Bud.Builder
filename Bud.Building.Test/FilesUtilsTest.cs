@@ -96,12 +96,27 @@ namespace Bud {
     [Test]
     public void CopyTree_creates_target_dir() {
       using (var tmpDir = new TmpDir()) {
-        var sourceFileFoo = tmpDir.CreateFile("42", "src", "bar", "foo");
-        var targetFileFoo = tmpDir.CreatePath("tgt", "bar", "foo");
-
+        var sourceFileFoo = tmpDir.CreateFile("42", "src", "foo");
         CopyTree(tmpDir.CreatePath("src"), tmpDir.CreatePath("tgt"));
+        FileAssert.AreEqual(sourceFileFoo, tmpDir.CreatePath("tgt", "foo"));
+      }
+    }
 
-        FileAssert.AreEqual(sourceFileFoo, targetFileFoo);
+    [Test]
+    public void CopyTree_target_dir_exists() {
+      using (var tmpDir = new TmpDir()) {
+        var sourceFileFoo = tmpDir.CreateFile("42", "src", "foo");
+        CopyTree(tmpDir.CreatePath("src"), tmpDir.CreateDir("tgt"));
+        FileAssert.AreEqual(sourceFileFoo, tmpDir.CreatePath("tgt", "foo"));
+      }
+    }
+
+    [Test]
+    public void CopyTree_creates_target_subdir() {
+      using (var tmpDir = new TmpDir()) {
+        var sourceFileFoo = tmpDir.CreateFile("42", "src", "bar", "foo");
+        CopyTree(tmpDir.CreatePath("src"), tmpDir.CreatePath("tgt"));
+        FileAssert.AreEqual(sourceFileFoo, tmpDir.CreatePath("tgt", "bar", "foo"));
       }
     }
 
@@ -109,11 +124,9 @@ namespace Bud {
     public void CopyTree_overwrite_existing() {
       using (var tmpDir = new TmpDir()) {
         var sourceFileFoo = tmpDir.CreateFile("42", "src", "bar", "foo");
-        var targetFileFoo = tmpDir.CreateFile("1", "tgt", "bar", "foo");
-
+        var targetFile = tmpDir.CreateFile("1", "tgt", "bar", "foo");
         CopyTree(tmpDir.CreatePath("src"), tmpDir.CreatePath("tgt"));
-
-        FileAssert.AreEqual(sourceFileFoo, targetFileFoo);
+        FileAssert.AreEqual(sourceFileFoo, targetFile);
       }
     }
   }
