@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using NUnit.Framework;
 using static Bud.FileUtils;
@@ -85,5 +86,35 @@ namespace Bud {
     [Test]
     public void ToAbsDir_already_abs()
       => Assert.AreEqual("/already/abs", ToAbsDir("/already/abs", "/foo/bar"));
+
+    [Test]
+    public void CopyTree_invalid_source_dir() {
+      var exception = Assert.Throws<Exception>(() => CopyTree("/invalid/directory", "/moot"));
+      Assert.AreEqual(exception.Message, "The directory '/invalid/directory' does not exist.");
+    }
+
+    [Test]
+    public void CopyTree_creates_target_dir() {
+      using (var tmpDir = new TmpDir()) {
+        var sourceFileFoo = tmpDir.CreateFile("42", "src", "bar", "foo");
+        var targetFileFoo = tmpDir.CreatePath("tgt", "bar", "foo");
+
+        CopyTree(tmpDir.CreatePath("src"), tmpDir.CreatePath("tgt"));
+
+        FileAssert.AreEqual(sourceFileFoo, targetFileFoo);
+      }
+    }
+
+    [Test]
+    public void CopyTree_overwrite_existing() {
+      using (var tmpDir = new TmpDir()) {
+        var sourceFileFoo = tmpDir.CreateFile("42", "src", "bar", "foo");
+        var targetFileFoo = tmpDir.CreateFile("1", "tgt", "bar", "foo");
+
+        CopyTree(tmpDir.CreatePath("src"), tmpDir.CreatePath("tgt"));
+
+        FileAssert.AreEqual(sourceFileFoo, targetFileFoo);
+      }
+    }
   }
 }

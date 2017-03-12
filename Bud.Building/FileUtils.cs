@@ -26,9 +26,9 @@ namespace Bud {
     /// <returns>a list of relative file paths.</returns>
     public static IEnumerable<string> FindFilesRelative(string dir, string searchPattern = "*",
                                                         SearchOption searchOption = SearchOption.AllDirectories) {
-      var taskOutputDirUri = new Uri($"{dir}/");
+      var dirUri = new Uri($"{dir}/");
       return FindFiles(dir, searchPattern, searchOption)
-        .Select(path => taskOutputDirUri.MakeRelativeUri(new Uri(path)).ToString());
+        .Select(path => dirUri.MakeRelativeUri(new Uri(path)).ToString());
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ namespace Bud {
     /// taken.</param>
     /// <returns>the absolute path of <paramref name="dir"/> relative to <paramref name="baseDir"/>.</returns>
     public static string ToAbsDir(string dir, string baseDir = null) {
-      if (String.IsNullOrEmpty(dir)) {
+      if (string.IsNullOrEmpty(dir)) {
         return baseDir ?? Directory.GetCurrentDirectory();
       }
       return Path.Combine(baseDir ?? Directory.GetCurrentDirectory(), dir);
@@ -77,6 +77,31 @@ namespace Bud {
         if (!allowedFiles.Contains(outputFile)) {
           File.Delete(outputFile);
         }
+      }
+    }
+
+    /// <summary>
+    ///   Recursively copies all files and directories from the source into the target directory.
+    /// </summary>
+    /// <param name="sourceDir">the directory from which to copy files.</param>
+    /// <param name="targetDir">the directory into which to place the files.</param>
+    /// <exception cref="Exception">this exception is thrown if the source directory does not exist.</exception>
+    /// <remarks>
+    ///   <p>This method will overwrite existing files in the target directory.</p>
+    ///   <p>If the target directory doesn't exist, this method will create it first.</p>
+    /// </remarks>
+    public static void CopyTree(string sourceDir, string targetDir) {
+      if (!Directory.Exists(sourceDir)) {
+        throw new Exception($"The directory '{sourceDir}' does not exist.");
+      }
+      var sourceDirUri = new Uri($"{sourceDir}/");
+      foreach (var absSourceDir in Directory.EnumerateDirectories(sourceDir, "*", SearchOption.AllDirectories)) {
+        var relSourceDir = sourceDirUri.MakeRelativeUri(new Uri(absSourceDir)).ToString();
+        Directory.CreateDirectory(Path.Combine(targetDir, relSourceDir));
+      }
+      foreach (var absSourceFile in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories)) {
+        var relSourceFile = sourceDirUri.MakeRelativeUri(new Uri(absSourceFile)).ToString();
+        File.Copy(absSourceFile, Path.Combine(targetDir, relSourceFile), overwrite: true);
       }
     }
   }
