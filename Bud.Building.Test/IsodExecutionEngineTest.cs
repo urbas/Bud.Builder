@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using Moq;
 using NUnit.Framework;
@@ -86,7 +87,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_ParallelDependencies() {
+    public void TestExecute_ParallelExecution() {
       using (var tmpDir = new TmpDir()) {
         var countdownLatch = new CountdownEvent(2);
 
@@ -100,9 +101,23 @@ namespace Bud {
           countdownLatch.Wait();
         });
 
-        var rootTaskMock = MockBuildTasks.NoOpBuildTask("rootTask", buildTask1Mock.Object, buildTask2Mock.Object);
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, buildTask1Mock.Object, buildTask2Mock.Object);
+      }
+    }
 
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, rootTaskMock.Object);
+    [Test]
+    public void TestExecute_ClashingSignature() {
+      using (var tmpDir = new TmpDir()) {
+        var task1Mock = MockBuildTasks.NoOpBuildTask("task1").WithSignature("foo");
+        var task2Mock = MockBuildTasks.NoOpBuildTask("task2",task1Mock.Object).WithSignature("foo");
+
+        var exception = Assert.Throws<Exception>(() => {
+          IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, task2Mock.Object);
+        });
+
+        Assert.That(exception.Message,
+                    Contains.Substring("Tasks 'task1' and 'task2' are clashing. " +
+                                       "They have the same signature 'foo'."));
       }
     }
   }

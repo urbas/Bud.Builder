@@ -7,56 +7,41 @@ using Moq;
 namespace Bud {
   public static class MockBuildTasks {
     public static Mock<IBuildTask> FileGenerator(string taskName, string fileName, string fileContents,
-                                                 params IBuildTask[] dependencies) {
-      var fileGeneratorMock = BareBuildTask(taskName, dependencies);
-
-      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<BuildTaskContext>()))
-                       .Callback((BuildTaskContext ctx) => {
-                         File.WriteAllText(Path.Combine(ctx.OutputDir, fileName), fileContents);
-                       });
-
-
-      fileGeneratorMock.Setup(f => f.GetSignature(It.IsAny<ImmutableArray<BuildTaskResult>>()))
-                       .Returns((ImmutableArray<BuildTaskResult> dependenciesResults) =>
-                                  GetTaskSigner(taskName, nameof(FileGenerator), dependenciesResults)
-                                    .Digest("FileName:")
-                                    .Digest(fileName)
-                                    .Digest("Parameters:")
-                                    .Digest(fileContents)
-                                    .Finish()
-                                    .HexSignature);
-
-      return fileGeneratorMock;
-    }
+                                                 params IBuildTask[] dependencies)
+      => BareBuildTask(taskName, dependencies)
+        .WithSignature(deps => GetTaskSigner(taskName, nameof(FileGenerator), deps)
+                         .Digest("FileName:")
+                         .Digest(fileName)
+                         .Digest("Parameters:")
+                         .Digest(fileContents)
+                         .Finish()
+                         .HexSignature)
+        .WithExecuteAction(ctx => File.WriteAllText(Path.Combine(ctx.OutputDir, fileName), fileContents));
 
     public static Mock<IBuildTask> ActionBuildTask(string taskName, Action buildAction,
-                                                   params IBuildTask[] dependencies) {
-      var fileGeneratorMock = BareBuildTask(taskName, dependencies);
+                                                   params IBuildTask[] dependencies)
+      => BareBuildTask(taskName, dependencies)
+        .WithSignature(deps => GetTaskSigner(taskName, nameof(ActionBuildTask), deps).Finish().HexSignature)
+        .WithExecuteAction(ctx => buildAction());
 
-      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<BuildTaskContext>()))
-                       .Callback((BuildTaskContext ctx) => buildAction());
+    public static Mock<IBuildTask> NoOpBuildTask(string taskName, params IBuildTask[] dependencies)
+      => BareBuildTask(taskName, dependencies)
+        .WithSignature(deps => GetTaskSigner(taskName, nameof(ActionBuildTask), deps).Finish().HexSignature);
 
-
-      fileGeneratorMock.Setup(f => f.GetSignature(It.IsAny<ImmutableArray<BuildTaskResult>>()))
-                       .Returns((ImmutableArray<BuildTaskResult> dependenciesResults) =>
-                                  GetTaskSigner(taskName, nameof(ActionBuildTask), dependenciesResults)
-                                    .Finish()
-                                    .HexSignature);
-
-      return fileGeneratorMock;
+    public static Mock<IBuildTask> WithExecuteAction(this Mock<IBuildTask> buildTaskMock,
+                                                     Action<BuildTaskContext> executeAction) {
+      buildTaskMock.Setup(f => f.Execute(It.IsAny<BuildTaskContext>())).Callback(executeAction);
+      return buildTaskMock;
     }
 
-    public static Mock<IBuildTask> NoOpBuildTask(string taskName, params IBuildTask[] dependencies) {
-      var fileGeneratorMock = BareBuildTask(taskName, dependencies);
+    public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> buildTaskMock, string signature)
+      => buildTaskMock.WithSignature(deps => signature);
 
-
-      fileGeneratorMock.Setup(f => f.GetSignature(It.IsAny<ImmutableArray<BuildTaskResult>>()))
-                       .Returns((ImmutableArray<BuildTaskResult> dependenciesResults) =>
-                                  GetTaskSigner(taskName, nameof(ActionBuildTask), dependenciesResults)
-                                    .Finish()
-                                    .HexSignature);
-
-      return fileGeneratorMock;
+    public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> buildTaskMock,
+                                                 Func<ImmutableArray<BuildTaskResult>, string> signature) {
+      buildTaskMock.Setup(f => f.GetSignature(It.IsAny<ImmutableArray<BuildTaskResult>>()))
+                   .Returns(signature);
+      return buildTaskMock;
     }
 
     private static Sha256Signer GetTaskSigner(string taskName, string taskType,

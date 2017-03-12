@@ -105,6 +105,9 @@ namespace Bud {
                                         .ToImmutableArray();
 
         var taskSignature = buildTask.GetSignature(buildTaskResults);
+
+        AssertUniqueSignature(buildExecutionContext, buildTask, taskSignature);
+
         var taskOutputDir = Combine(buildExecutionContext.DoneOutputsDir, taskSignature);
         if (!Exists(taskOutputDir)) {
           var partialTaskOutputDir = Combine(buildExecutionContext.PartialOutputsDir, taskSignature);
@@ -142,6 +145,14 @@ namespace Bud {
       outputFilesToTasks.AddOutputFiles(taskOutputDir, relativeOutputFilePaths, buildTask);
     }
 
+    private static void AssertUniqueSignature(BuildExecutionContext buildExecutionContext, IBuildTask buildTask, string taskSignature) {
+      var storedTask = buildExecutionContext.GetOrAddTaskSignature(taskSignature, buildTask);
+      if (storedTask != buildTask) {
+        throw new Exception($"Tasks '{storedTask.Name}' and '{buildTask.Name}' are clashing. " +
+                            $"They have the same signature '{taskSignature}'.");
+      }
+    }
+
     private class BuildExecutionContext {
       private readonly Dictionary<string, IBuildTask> outputFilesToBuildTasks = new Dictionary<string, IBuildTask>();
       private readonly List<string> outputFilesAbsPaths = new List<string>();
@@ -153,6 +164,9 @@ namespace Bud {
         = new Dictionary<IBuildTask, BuildTaskResult>();
 
       private readonly Dictionary<IBuildTask, TaskGraph> buildTaskToTaskGraph = new Dictionary<IBuildTask, TaskGraph>();
+
+      private readonly ConcurrentDictionary<string, IBuildTask> signatureToBuildTask
+        = new ConcurrentDictionary<string, IBuildTask>();
 
 
       public BuildExecutionContext(string sourceDir, string buildDir) {
@@ -202,6 +216,9 @@ namespace Bud {
 
       public void AddTaskGraph(IBuildTask buildTask, TaskGraph taskGraph)
         => buildTaskToTaskGraph.Add(buildTask, taskGraph);
+
+      public IBuildTask GetOrAddTaskSignature(string taskSignature, IBuildTask buildTask)
+        => signatureToBuildTask.GetOrAdd(taskSignature, buildTask);
     }
   }
 
