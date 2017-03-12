@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using static Bud.HexUtils;
@@ -10,8 +11,8 @@ namespace Bud {
     [Test]
     public void Signature_throws_at_the_beginning() {
       var exception = Throws<Exception>(() => {
-                                          var _ = new Sha256Signer().Signature;
-                                        });
+        var _ = new Sha256Signer().Signature;
+      });
       That(exception.Message,
            DoesContain.Substring("The hash has not yet been calculated. Call 'Finish' to calculate the hash."));
     }
@@ -43,9 +44,14 @@ namespace Bud {
       using (var dir = new TmpDir()) {
         var fooFile = dir.CreateFile("9001", "foo.txt");
         var barFile = dir.CreateFile("42", "bar.txt");
-        AreEqual(new Sha256Signer().Digest(fooFile).Digest(Encoding.UTF8.GetBytes("9001"))
-                                 .Digest(barFile).Digest(Encoding.UTF8.GetBytes("42")).Finish().Signature,
-                 new Sha256Signer().DigestSources(new[] {fooFile, barFile}).Finish().Signature);
+        AreEqual(new Sha256Signer().Digest(fooFile)
+                                   .Digest(Encoding.UTF8.GetBytes("9001"))
+                                   .Digest(barFile)
+                                   .Digest(Encoding.UTF8.GetBytes("42"))
+                                   .Finish()
+                                   .Signature
+                                   .ToArray(),
+                 new Sha256Signer().DigestSources(new[] {fooFile, barFile}).Finish().Signature.ToArray());
       }
     }
   }

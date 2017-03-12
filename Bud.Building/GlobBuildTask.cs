@@ -151,7 +151,7 @@ namespace Bud {
     /// <returns>a string of the form <c>"src/**/*.ts -> out/bin/**/*.js"</c></returns>
     public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
 
-    private byte[] CalculateTaskSignature(IEnumerable<string> sources)
+    private ImmutableArray<byte> CalculateTaskSignature(IEnumerable<string> sources)
       => new Sha256Signer().Digest("Sources")
                            .DigestSources(sources)
                            .Digest("SourceDir")

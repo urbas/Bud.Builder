@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Moq;
 using NUnit.Framework;
 
@@ -81,6 +82,27 @@ namespace Bud {
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTaskMock.Object);
 
         fooTaskMock.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
+      }
+    }
+
+    [Test]
+    public void TestExecute_ParallelDependencies() {
+      using (var tmpDir = new TmpDir()) {
+        var countdownLatch = new CountdownEvent(2);
+
+        var buildTask1Mock = MockBuildTasks.ActionBuildTask("latch1", () => {
+          countdownLatch.Signal();
+          countdownLatch.Wait();
+        });
+
+        var buildTask2Mock = MockBuildTasks.ActionBuildTask("latch2", () => {
+          countdownLatch.Signal();
+          countdownLatch.Wait();
+        });
+
+        var rootTaskMock = MockBuildTasks.NoOpBuildTask("rootTask", buildTask1Mock.Object, buildTask2Mock.Object);
+
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, rootTaskMock.Object);
       }
     }
   }

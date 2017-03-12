@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
 using static System.Math;
@@ -18,9 +19,10 @@ namespace Bud {
   /// </para>
   /// </remarks>
   public class Sha256Signer {
-    private byte[] hash;
+    private byte[] signatureRawBytes;
     private readonly SHA256 hashAlgorithm;
     private readonly byte[] buffer;
+    private ImmutableArray<byte> signature;
 
     /// <param name="buffer">this array will be used as a buffer of bytes that will be read from files or strings
     /// and passed on to the hashing algorithm. Because this signer uses UTF-32 when converting strings to bytes,
@@ -96,25 +98,42 @@ namespace Bud {
     /// <returns>this task signer.</returns>
     public Sha256Signer Finish() {
       hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-      hash = hashAlgorithm.Hash;
+      signatureRawBytes = hashAlgorithm.Hash;
+      signature = signatureRawBytes.ToImmutableArray();
       return this;
     }
 
     /// <summary>
-    /// The signature of the task.
+    /// The signature.
     /// </summary>
     /// <exception cref="Exception">
     ///   this is thrown if the <see cref="Finish"/> method hasn't been called yet.
     /// </exception>
-    /// <remarks>
-    ///   This method returns clones of the byte signature byte array.
-    /// </remarks>
-    public byte[] Signature {
+    public ImmutableArray<byte> Signature {
       get {
-        if (hash == null) {
-          throw new Exception($"The hash has not yet been calculated. Call '{nameof(Finish)}' to calculate the hash.");
-        }
-        return hash;
+        AssertIsFinished();
+        return signature;
+      }
+    }
+
+    /// <summary>
+    /// Hexadecimal string representation of the signature.
+    /// </summary>
+    /// <exception cref="Exception">
+    ///   this is thrown if the <see cref="Finish"/> method hasn't been called yet.
+    /// </exception>
+    public string HexSignature => HexUtils.ToHexStringFromBytes(SignatureRawBytes);
+
+    private byte[] SignatureRawBytes {
+      get {
+        AssertIsFinished();
+        return signatureRawBytes;
+      }
+    }
+
+    private void AssertIsFinished() {
+      if (signatureRawBytes == null) {
+        throw new Exception($"The hash has not yet been calculated. Call '{nameof(Finish)}' to calculate the hash.");
       }
     }
   }
