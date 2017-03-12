@@ -139,13 +139,13 @@ namespace Bud {
 
     [Test]
     public void TestExecute_StressTest() {
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 5; i++) {
         using (var tmpDir = new TmpDir()) {
           var sourceDir = tmpDir.CreateDir("src");
           var outputDir = tmpDir.CreatePath("out");
           var metaDir = tmpDir.CreatePath(".bud");
 
-          var generatedFiles = Enumerable.Range(0, 100).Select(idx => $"file_{idx}").ToList();
+          var generatedFiles = Enumerable.Range(0, 10).Select(idx => $"file_{idx}").ToList();
           var fileGenerators = generatedFiles.Select(file => MockBuildTasks.GenerateFile(file, file, file).Object);
 
           IsodExecutionEngine.Execute(sourceDir, outputDir, metaDir, fileGenerators);
