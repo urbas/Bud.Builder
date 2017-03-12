@@ -11,9 +11,9 @@ namespace Bud {
       using (var tmpDir = new TmpDir()) {
         var fooTask = MockBuildTasks.GenerateFile("createFoo", "foo", "42").Object;
 
-        var buildResult = IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTask);
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTask);
 
-        FileAssert.AreEqual(tmpDir.CreateFile("42"), buildResult.OutputFiles[0]);
+        FileAssert.AreEqual(tmpDir.CreateFile("42"), tmpDir.CreatePath("out", "foo"));
       }
     }
 
@@ -23,10 +23,10 @@ namespace Bud {
         var fooTask = MockBuildTasks.GenerateFile("createFoo", "foo", "42").Object;
         var barTask = MockBuildTasks.GenerateFile("createBar", "bar", "9001", fooTask).Object;
 
-        var buildResult = IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTask);
+        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTask);
 
-        FileAssert.AreEqual(tmpDir.CreateFile("42"), buildResult.OutputFiles[0]);
-        FileAssert.AreEqual(tmpDir.CreateFile("9001"), buildResult.OutputFiles[1]);
+        FileAssert.AreEqual(tmpDir.CreateFile("42"), tmpDir.CreatePath("out", "foo"));
+        FileAssert.AreEqual(tmpDir.CreateFile("9001"), tmpDir.CreatePath("out", "bar"));
       }
     }
 
