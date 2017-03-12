@@ -105,10 +105,10 @@ namespace Bud {
                                         .ToImmutableArray();
 
         var taskSignature = buildTask.GetSignature(buildTaskResults);
-        var taskOutputDir = Combine(buildExecutionContext.TaskOutputDirsRoot, taskSignature);
+        var taskOutputDir = Combine(buildExecutionContext.DoneOutputsDir, taskSignature);
         if (!Exists(taskOutputDir)) {
-          var unfinishedTaskOutputDir = Combine(buildExecutionContext.UnfinishedTaskOutputDirsRoot, taskSignature);
-          ExecuteBuildTask(buildTask, unfinishedTaskOutputDir, taskOutputDir);
+          var partialTaskOutputDir = Combine(buildExecutionContext.PartialOutputsDir, taskSignature);
+          ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir);
         }
         CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
 
@@ -122,10 +122,10 @@ namespace Bud {
         dependenciesResultsBuilder.Add(buildTaskResult);
       }, dependenciesTaskGraphs);
 
-    private static void ExecuteBuildTask(IBuildTask buildTask, string unfinishedTaskOutputDir, string taskOutputDir) {
-      CreateDirectory(unfinishedTaskOutputDir);
-      buildTask.Execute(unfinishedTaskOutputDir);
-      Move(unfinishedTaskOutputDir, taskOutputDir);
+    private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir) {
+      CreateDirectory(partialTaskOutputDir);
+      buildTask.Execute(new BuildTaskContext(partialTaskOutputDir));
+      Move(partialTaskOutputDir, taskOutputDir);
     }
 
     private static void CollectBuildTaskOutput(BuildExecutionContext outputFilesToTasks, IBuildTask buildTask,
@@ -158,20 +158,20 @@ namespace Bud {
       public BuildExecutionContext(string sourceDir, string buildDir) {
         SourceDir = sourceDir;
         BuildDir = buildDir;
-        UnfinishedTaskOutputDirsRoot = Combine(BuildDir, ".partial");
-        TaskOutputDirsRoot = Combine(BuildDir, ".done");
+        PartialOutputsDir = Combine(BuildDir, ".partial");
+        DoneOutputsDir = Combine(BuildDir, ".done");
 
-        CreateDirectory(TaskOutputDirsRoot);
-        CreateDirectory(UnfinishedTaskOutputDirsRoot);
+        CreateDirectory(DoneOutputsDir);
+        CreateDirectory(PartialOutputsDir);
       }
 
       public string SourceDir { get; }
 
       public string BuildDir { get; }
 
-      public string TaskOutputDirsRoot { get; }
+      public string DoneOutputsDir { get; }
 
-      public string UnfinishedTaskOutputDirsRoot { get; }
+      public string PartialOutputsDir { get; }
 
       public ImmutableArray<string> OutputFiles => outputFilesAbsPaths.ToImmutableArray();
 
@@ -206,7 +206,7 @@ namespace Bud {
   }
 
   public interface IBuildTask {
-    void Execute(string buildDir);
+    void Execute(BuildTaskContext context);
     ImmutableArray<IBuildTask> Dependencies { get; }
     string Name { get; }
 
@@ -217,6 +217,14 @@ namespace Bud {
     ///   environment variables, the task's algorithm, and other factors that affect the task's output.
     /// </returns>
     string GetSignature(ImmutableArray<BuildTaskResult> dependencyResults);
+  }
+
+  public class BuildTaskContext {
+    public string OutputDir { get; }
+
+    public BuildTaskContext(string outputDir) {
+      OutputDir = outputDir;
+    }
   }
 
   public class BuildTaskResult {

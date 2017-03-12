@@ -37,7 +37,7 @@ namespace Bud {
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, fooTaskMock.Object);
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, fooTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
+        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>()), Times.Once);
       }
     }
 
@@ -68,7 +68,7 @@ namespace Bud {
         var barTaskMock2 = MockBuildTasks.FileGenerator("createBar", "bar", "9001", changedFooTaskMock.Object);
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTaskMock2.Object);
 
-        barTaskMock2.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
+        barTaskMock2.Verify(f => f.Execute(It.IsAny<BuildTaskContext>()), Times.Once);
       }
     }
 
@@ -81,7 +81,7 @@ namespace Bud {
 
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.Path, barTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<string>()), Times.Once);
+        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>()), Times.Once);
       }
     }
 

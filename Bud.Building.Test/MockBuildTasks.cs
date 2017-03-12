@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using Moq;
-using static Bud.HexUtils;
 
 namespace Bud {
   public static class MockBuildTasks {
@@ -11,9 +10,9 @@ namespace Bud {
                                                  params IBuildTask[] dependencies) {
       var fileGeneratorMock = BareBuildTask(taskName, dependencies);
 
-      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<string>()))
-                       .Callback((string buildDir) => {
-                         File.WriteAllText(Path.Combine(buildDir, fileName), fileContents);
+      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<BuildTaskContext>()))
+                       .Callback((BuildTaskContext ctx) => {
+                         File.WriteAllText(Path.Combine(ctx.OutputDir, fileName), fileContents);
                        });
 
 
@@ -34,8 +33,8 @@ namespace Bud {
                                                    params IBuildTask[] dependencies) {
       var fileGeneratorMock = BareBuildTask(taskName, dependencies);
 
-      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<string>()))
-                       .Callback((string buildDir) => buildAction());
+      fileGeneratorMock.Setup(f => f.Execute(It.IsAny<BuildTaskContext>()))
+                       .Callback((BuildTaskContext ctx) => buildAction());
 
 
       fileGeneratorMock.Setup(f => f.GetSignature(It.IsAny<ImmutableArray<BuildTaskResult>>()))
