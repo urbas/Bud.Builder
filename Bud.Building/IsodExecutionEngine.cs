@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -71,17 +72,25 @@ namespace Bud {
     ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
     public static void Execute(string sourceDir, string buildDir, string metaDir, IEnumerable<IBuildTask> buildTasks) {
       var buildExecutionContext = new BuildExecutionContext(sourceDir, buildDir, metaDir);
+      ExecuteBuildTasks(buildTasks, buildExecutionContext);
+      AssertNoClashingFiles(buildExecutionContext);
+      CopyOutputToOutputDir(buildExecutionContext);
+    }
+
+    private static void ExecuteBuildTasks(IEnumerable<IBuildTask> buildTasks, BuildExecutionContext buildExecutionContext) {
       try {
         new TaskGraph(buildTasks.Select(buildTask => GetOrCreateTaskGraph(buildExecutionContext, buildTask))).Run();
       } catch (AggregateException aggregateException) {
         throw aggregateException.InnerExceptions[0];
       }
+    }
 
-      if (Exists(buildDir)) {
-        Delete(buildDir, true);
+    private static void CopyOutputToOutputDir(BuildExecutionContext buildExecutionContext) {
+      if (Exists(buildExecutionContext.BuildDir)) {
+        Delete(buildExecutionContext.BuildDir, true);
       }
       foreach (var taskOutputDir in buildExecutionContext.TaskOutputDirs) {
-        CopyTree(taskOutputDir, buildDir);
+        CopyTree(taskOutputDir, buildExecutionContext.BuildDir);
       }
     }
 
@@ -95,16 +104,17 @@ namespace Bud {
       return createdTaskGraph;
     }
 
-    private static TaskGraph CreateTaskGraph(BuildExecutionContext buildExecutionContext, IBuildTask buildTask) {
-      var dependenciesTaskGraphs = buildTask.Dependencies
-                                            .Select(depTask => GetOrCreateTaskGraph(buildExecutionContext, depTask))
-                                            .ToImmutableArray();
-      return ToTaskGraph(buildExecutionContext, buildTask, dependenciesTaskGraphs);
-    }
+    private static TaskGraph CreateTaskGraph(BuildExecutionContext buildExecutionContext, IBuildTask buildTask)
+      => ToTaskGraph(buildExecutionContext,
+                     buildTask,
+                     buildTask.Dependencies
+                              .Select(depTask => GetOrCreateTaskGraph(buildExecutionContext, depTask))
+                              .ToImmutableArray());
 
     private static TaskGraph ToTaskGraph(BuildExecutionContext buildExecutionContext, IBuildTask buildTask,
                                          ImmutableArray<TaskGraph> dependenciesTaskGraphs)
       => new TaskGraph(() => {
+        // At this point all dependencies will have been evaluated, so their results will be available.
         var dependenciesResults = buildTask.Dependencies
                                            .Select(buildExecutionContext.GetBuildTaskResult)
                                            .ToImmutableArray();
@@ -118,12 +128,8 @@ namespace Bud {
           var partialTaskOutputDir = Combine(buildExecutionContext.PartialOutputsDir, taskSignature);
           ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, buildExecutionContext.SourceDir);
         }
-        CollectBuildTaskOutput(buildExecutionContext, buildTask, taskOutputDir);
 
-        var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir,
-                                                  buildExecutionContext.GetAbsoluteOutputs(buildTask),
-                                                  dependenciesResults);
-
+        var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
 
         buildExecutionContext.AddBuildTaskResult(buildTask, buildTaskResult);
       }, dependenciesTaskGraphs);
@@ -135,18 +141,22 @@ namespace Bud {
       Move(partialTaskOutputDir, taskOutputDir);
     }
 
-    private static void CollectBuildTaskOutput(BuildExecutionContext outputFilesToTasks, IBuildTask buildTask,
-                                               string taskOutputDir) {
-      var relativeOutputFilesEnumerable = FindFilesRelative(taskOutputDir);
-      var relativeOutputFilePaths = relativeOutputFilesEnumerable as IList<string> ?? relativeOutputFilesEnumerable.ToList();
-      foreach (var outputFile in relativeOutputFilePaths) {
-        IBuildTask otherTask;
-        if (outputFilesToTasks.TryGetBuildTaskForRelativeFile(outputFile, out otherTask)) {
-          throw new Exception($"Tasks '{otherTask.Name}' and '{buildTask.Name}' are clashing. " +
-                              $"They produced the same file '{outputFile}'.");
+    private static void AssertNoClashingFiles(BuildExecutionContext buildExecutionContext) {
+      var relativeOutputFileToBuildTask = new Dictionary<string, IBuildTask>();
+      foreach (var signatureAndBuildTask in buildExecutionContext.SignaturesToBuildTasks) {
+        var relativeOutputFilesEnumerable =
+          FindFilesRelative(Combine(buildExecutionContext.DoneOutputsDir, signatureAndBuildTask.Key));
+
+        foreach (var relativeOutputFile in relativeOutputFilesEnumerable) {
+          IBuildTask otherTask;
+
+          if (relativeOutputFileToBuildTask.TryGetValue(relativeOutputFile, out otherTask)) {
+            throw new Exception($"Tasks '{otherTask.Name}' and '{signatureAndBuildTask.Value.Name}' are clashing. " +
+                                $"They produced the same file '{relativeOutputFile}'.");
+          }
+          relativeOutputFileToBuildTask.Add(relativeOutputFile, signatureAndBuildTask.Value);
         }
       }
-      outputFilesToTasks.AddOutputFiles(taskOutputDir, relativeOutputFilePaths, buildTask);
     }
 
     private static void AssertUniqueSignature(BuildExecutionContext buildExecutionContext, IBuildTask buildTask, string taskSignature) {
@@ -158,22 +168,17 @@ namespace Bud {
     }
 
     private class BuildExecutionContext {
-      private readonly Dictionary<string, IBuildTask> relativeOutputFilesToBuildTasks = new Dictionary<string, IBuildTask>();
-      private readonly List<string> outputFilesAbsPaths = new List<string>();
-
-      private readonly Dictionary<IBuildTask, ImmutableArray<string>> buildTasksToAbsoluteOutputFiles
-        = new Dictionary<IBuildTask, ImmutableArray<string>>();
-
-      private readonly Dictionary<IBuildTask, BuildTaskResult> buildTasksToResults
-        = new Dictionary<IBuildTask, BuildTaskResult>();
-
+      /// <summary>
+      ///   Task graphs are built up in a single thread. This is why this can be a normal dictionary.
+      /// </summary>
       private readonly Dictionary<IBuildTask, TaskGraph> buildTaskToTaskGraph = new Dictionary<IBuildTask, TaskGraph>();
+
+      private readonly ConcurrentDictionary<IBuildTask, BuildTaskResult> buildTasksToResults
+        = new ConcurrentDictionary<IBuildTask, BuildTaskResult>(new Dictionary<IBuildTask, BuildTaskResult>());
+
 
       private readonly ConcurrentDictionary<string, IBuildTask> signatureToBuildTask
         = new ConcurrentDictionary<string, IBuildTask>();
-
-      private List<string> taskOutputDirs = new List<string>();
-
 
       public BuildExecutionContext(string sourceDir, string buildDir, string metaDir) {
         SourceDir = sourceDir;
@@ -196,29 +201,13 @@ namespace Bud {
 
       public string PartialOutputsDir { get; }
 
-      public ImmutableArray<string> OutputFiles => outputFilesAbsPaths.ToImmutableArray();
-      public IEnumerable<string> TaskOutputDirs => taskOutputDirs;
+      public IEnumerable<string> TaskOutputDirs
+        => signatureToBuildTask.Keys.Select(sig => Combine(DoneOutputsDir, sig));
 
-      public bool TryGetBuildTaskForRelativeFile(string relativeOutputFile, out IBuildTask buildTask)
-        => relativeOutputFilesToBuildTasks.TryGetValue(relativeOutputFile, out buildTask);
-
-      public void AddOutputFiles(string taskOutputDir, IList<string> relativeOutputFilePaths, IBuildTask buildTask) {
-        foreach (var relativeOutputFilePath in relativeOutputFilePaths) {
-          relativeOutputFilesToBuildTasks.Add(relativeOutputFilePath, buildTask);
-        }
-        var absoluteOutputFilePaths = relativeOutputFilePaths
-          .Select(relativeOutputFile => Combine(taskOutputDir, relativeOutputFile))
-          .ToImmutableArray();
-        outputFilesAbsPaths.AddRange(absoluteOutputFilePaths);
-        buildTasksToAbsoluteOutputFiles.Add(buildTask, absoluteOutputFilePaths);
-        taskOutputDirs.Add(taskOutputDir);
-      }
-
-      public ImmutableArray<string> GetAbsoluteOutputs(IBuildTask buildTask)
-        => buildTasksToAbsoluteOutputFiles[buildTask];
+      public IDictionary<string, IBuildTask> SignaturesToBuildTasks => signatureToBuildTask;
 
       public void AddBuildTaskResult(IBuildTask buildTask, BuildTaskResult buildTaskResult)
-        => buildTasksToResults.Add(buildTask, buildTaskResult);
+        => buildTasksToResults.GetOrAdd(buildTask, buildTaskResult);
 
       public BuildTaskResult GetBuildTaskResult(IBuildTask buildTask) => buildTasksToResults[buildTask];
 
@@ -262,14 +251,12 @@ namespace Bud {
     public string TaskName => buildTask.Name;
     public string TaskSignature { get; }
     public string TaskOutputDir { get; }
-    public ImmutableArray<string> OutputFiles { get; }
     public ImmutableArray<BuildTaskResult> DependenciesResults { get; }
 
     public BuildTaskResult(IBuildTask buildTask, string taskSignature, string taskOutputDir,
-                           ImmutableArray<string> outputFiles, ImmutableArray<BuildTaskResult> dependenciesResults) {
+                           ImmutableArray<BuildTaskResult> dependenciesResults) {
       TaskSignature = taskSignature;
       TaskOutputDir = taskOutputDir;
-      OutputFiles = outputFiles;
       DependenciesResults = dependenciesResults;
       this.buildTask = buildTask;
     }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Moq;
 using NUnit.Framework;
@@ -133,6 +134,26 @@ namespace Bud {
         IsodExecutionEngine.Execute(sourceDir, outputDir, metaDir, task1Mock.Object);
 
         FileAssert.AreEqual(sourceFile, Path.Combine(outputDir, "bar"));
+      }
+    }
+
+    [Test]
+    public void TestExecute_StressTest() {
+      for (int i = 0; i < 100; i++) {
+        using (var tmpDir = new TmpDir()) {
+          var sourceDir = tmpDir.CreateDir("src");
+          var outputDir = tmpDir.CreatePath("out");
+          var metaDir = tmpDir.CreatePath(".bud");
+
+          var generatedFiles = Enumerable.Range(0, 100).Select(idx => $"file_{idx}").ToList();
+          var fileGenerators = generatedFiles.Select(file => MockBuildTasks.GenerateFile(file, file, file).Object);
+
+          IsodExecutionEngine.Execute(sourceDir, outputDir, metaDir, fileGenerators);
+
+          foreach (var generatedFile in generatedFiles) {
+            FileAssert.AreEqual(tmpDir.CreateFile(generatedFile), Path.Combine(outputDir, generatedFile));
+          }
+        }
       }
     }
   }
