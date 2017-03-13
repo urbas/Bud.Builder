@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -39,7 +40,7 @@ namespace Bud {
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>()), Times.Once);
+        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
       }
     }
 
@@ -70,7 +71,7 @@ namespace Bud {
         var barTaskMock2 = MockBuildTasks.GenerateFile("createBar", "bar", "9001", changedFooTaskMock.Object);
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock2.Object);
 
-        barTaskMock2.Verify(f => f.Execute(It.IsAny<BuildTaskContext>()), Times.Once);
+        barTaskMock2.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
       }
     }
 
@@ -83,7 +84,7 @@ namespace Bud {
 
         IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>()), Times.Once);
+        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
       }
     }
 

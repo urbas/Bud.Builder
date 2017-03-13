@@ -40,7 +40,7 @@ namespace Bud {
                                       string outputDir,
                                       string outputExt,
                                       string signature = null,
-                                      IEnumerable<BuildTask> dependsOn = null)
+                                      IEnumerable<IBuildTask> dependsOn = null)
       => new GlobBuildTask(command, sourceDir, sourceExt, outputDir, outputExt, signature, dependsOn);
 
     /// <summary>
@@ -52,7 +52,7 @@ namespace Bud {
     /// directory is used.</param>
     /// <param name="metaDir">the directory where meta information about the build system is stored. By default
     /// the subdirectory `.bud` in the base directory is used.</param>
-    public static void RunBuild(BuildTask task,
+    public static void RunBuild(IBuildTask task,
                                 TextWriter stdout = null,
                                 string baseDir = null,
                                 string metaDir = null)
@@ -67,14 +67,14 @@ namespace Bud {
     /// directory is used.</param>
     /// <param name="metaDir">the directory where meta information about the build system is stored. By default
     /// the subdirectory `.bud` in the base directory is used.</param>
-    public static void RunBuild(IEnumerable<BuildTask> tasks,
+    public static void RunBuild(IEnumerable<IBuildTask> tasks,
                                 TextWriter stdout = null,
                                 string baseDir = null,
                                 string metaDir = null) {
-      var buildTasks = tasks as IList<BuildTask> ?? tasks.ToList();
+      var buildTasks = tasks as IList<IBuildTask> ?? tasks.ToList();
       baseDir = baseDir ?? Directory.GetCurrentDirectory();
       metaDir = metaDir ?? Path.Combine(baseDir, BuildMetaDirName);
-      new ExecutionEngine(buildTasks, baseDir, metaDir, stdout).ExecuteBuild();
+      IsodExecutionEngine.Execute(baseDir, Path.Combine(baseDir, "build"), metaDir, buildTasks);
     }
   }
 }

@@ -21,7 +21,7 @@ namespace Bud {
                                                                 $"{Args(ctx.Sources)}"),
                          sourceDir: "src",
                          sourceExt: ".txt",
-                         outputDir: "build",
+                         outputDir: "",
                          outputExt: ".txt.nospace");
 
         RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
@@ -88,7 +88,7 @@ namespace Bud {
         RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo2", "foo.expected"),
-                            dir.CreatePath("build2", "foo.txt.nospace"));
+                            dir.CreatePath("build", "build2", "foo.txt.nospace"));
       }
     }
 
@@ -96,11 +96,11 @@ namespace Bud {
     public void Build_tasks_rebuild_old_state() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
         dir.CreateFile("  foo2  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
                             dir.CreatePath("build", "foo.txt.nospace"));
@@ -111,7 +111,7 @@ namespace Bud {
     public void Half_finished_failed_task_does_not_prevent_subsequent_builds() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
 
         dir.CreateFile("  foo2  ", "src", "foo.txt");
         try {
@@ -121,7 +121,7 @@ namespace Bud {
                          },
                          sourceDir: "src",
                          sourceExt: "txt",
-                         outputDir: "build",
+                         outputDir: "",
                          outputExt: ".txt.nospace"),
                    stdout: new StringWriter(),
                    baseDir: dir.Path);
@@ -130,24 +130,9 @@ namespace Bud {
         }
 
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(outputDir: "build"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"), dir.CreatePath("build", "foo.txt.nospace"));
-      }
-    }
-
-    [Test]
-    public void Throw_when_given_conflicting_build_tasks() {
-      using (var dir = new TmpDir()) {
-        var exception = Assert.Throws<AggregateException>(() => RunBuild(new[] {
-                                                                           TrimTxtFiles(outputDir: "build"),
-                                                                           TrimTxtFiles(outputDir: "build")
-                                                                         },
-                                                                         stdout: new StringWriter(),
-                                                                         baseDir: dir.Path));
-        Assert.AreEqual("Clashing build specification. Found duplicate tasks: " +
-                        "'src/**/*.txt -> build/**/*.txt.nospace' and 'src/**/*.txt -> build/**/*.txt.nospace'.",
-                        exception.InnerExceptions[0].Message);
       }
     }
 
@@ -188,33 +173,6 @@ namespace Bud {
     }
 
     [Test]
-    public void Throw_when_two_build_tasks_build_the_same_file() {
-      using (var dir = new TmpDir()) {
-        dir.CreateFile(" foo ", "src1", "foo.txt");
-        dir.CreateFile(" bar ", "src2", "foo.txt");
-
-        TestDelegate testDelegate = () => {
-          var task1 = TrimTxtFiles(sourceDir: "src1", outputDir: "build");
-          RunBuild(new[] {
-                     task1,
-                     TrimTxtFiles(sourceDir: "src2", outputDir: "build", dependsOn: new[] {task1})
-                   },
-                   stdout: new StringWriter(),
-                   baseDir: dir.Path);
-        };
-
-        var clashingFile = dir.CreatePath("build", "foo.txt.nospace");
-
-
-        var exception = Assert.Throws<AggregateException>(testDelegate);
-        Assert.AreEqual($"Two builds are trying to produce the file '{clashingFile}'. " +
-                        $"Build 'src1/**/*.txt -> build/**/*.txt.nospace' and " +
-                        $"'src2/**/*.txt -> build/**/*.txt.nospace'.",
-                        exception.InnerExceptions[0].Message);
-      }
-    }
-
-    [Test]
     [Ignore("TODO")]
     public void Files_produced_by_other_tasks_are_not_deleted() {
       using (var dir = new TmpDir()) {
@@ -246,8 +204,8 @@ namespace Bud {
     }
 
     private static GlobBuildTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt",
-                                              string outputDir = "build", string outputExt = ".txt.nospace",
-                                              IEnumerable<BuildTask> dependsOn = null)
+                                              string outputDir = "", string outputExt = ".txt.nospace",
+                                              IEnumerable<IBuildTask> dependsOn = null)
       => new GlobBuildTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
                                                                  ctx.OutputExt),
                            sourceDir: sourceDir,

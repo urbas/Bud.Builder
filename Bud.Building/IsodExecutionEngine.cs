@@ -118,14 +118,15 @@ namespace Bud {
                                            .Select(buildExecutionContext.GetBuildTaskResult)
                                            .ToImmutableArray();
 
-        var taskSignature = buildTask.GetSignature(dependenciesResults);
+        var taskSignature = buildTask.GetSignature(buildExecutionContext.SourceDir, dependenciesResults);
 
         AssertUniqueSignature(buildExecutionContext, buildTask, taskSignature);
 
         var taskOutputDir = Combine(buildExecutionContext.DoneOutputsDir, taskSignature);
         if (!Exists(taskOutputDir)) {
           var partialTaskOutputDir = Combine(buildExecutionContext.PartialOutputsDir, taskSignature);
-          ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, buildExecutionContext.SourceDir);
+          ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, buildExecutionContext.SourceDir,
+          dependenciesResults);
         }
 
         var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
@@ -134,9 +135,9 @@ namespace Bud {
       }, dependenciesTaskGraphs);
 
     private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir,
-                                         string sourceDir) {
+                                         string sourceDir, ImmutableArray<BuildTaskResult> dependenciesResults) {
       CreateDirectory(partialTaskOutputDir);
-      buildTask.Execute(new BuildTaskContext(partialTaskOutputDir, sourceDir));
+      buildTask.Execute(new BuildTaskContext(partialTaskOutputDir, sourceDir), dependenciesResults);
       Move(partialTaskOutputDir, taskOutputDir);
     }
 
@@ -175,7 +176,6 @@ namespace Bud {
       private readonly ConcurrentDictionary<IBuildTask, BuildTaskResult> buildTasksToResults
         = new ConcurrentDictionary<IBuildTask, BuildTaskResult>(new Dictionary<IBuildTask, BuildTaskResult>());
 
-
       private readonly ConcurrentDictionary<string, IBuildTask> signatureToBuildTask
         = new ConcurrentDictionary<string, IBuildTask>();
 
@@ -194,7 +194,7 @@ namespace Bud {
 
       public string BuildDir { get; }
 
-      public string MetaDir { get; }
+      private string MetaDir { get; }
 
       public string DoneOutputsDir { get; }
 
@@ -222,17 +222,19 @@ namespace Bud {
   }
 
   public interface IBuildTask {
-    void Execute(BuildTaskContext context);
+    void Execute(BuildTaskContext context, ImmutableArray<BuildTaskResult> dependencyResults);
     ImmutableArray<IBuildTask> Dependencies { get; }
     string Name { get; }
 
+    /// <param name="ctx">this object contains the source directory of the current build, the output directory where
+    ///   this task should place its files, and other information about the current build.</param>
     /// <param name="dependencyResults">the results of dependent build tasks.</param>
     /// <returns>
     ///   A hex string or a URL- and filename-safe Base64 string (i.e.: base64url). This signature should be a
     ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
     ///   environment variables, the task's algorithm, and other factors that affect the task's output.
     /// </returns>
-    string GetSignature(ImmutableArray<BuildTaskResult> dependencyResults);
+    string GetSignature(string ctx, ImmutableArray<BuildTaskResult> dependencyResults);
   }
 
   public class BuildTaskContext {

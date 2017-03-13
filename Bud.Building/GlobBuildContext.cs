@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using static Bud.Exec;
 
 namespace Bud {
@@ -11,11 +9,11 @@ namespace Bud {
   /// extension of files produced by the build, the logger, and some helper functions through which
   /// to invoke external compilers.
   /// </summary>
-  public class GlobBuildContext : IBuildContext {
+  public class GlobBuildContext {
     /// <summary>
     ///   Creates a new context with the given information.
     /// </summary>
-    public GlobBuildContext(BuildContext ctx, IImmutableSet<string> sources, string sourceDir, string sourcesExt,
+    public GlobBuildContext(BuildTaskContext ctx, IImmutableSet<string> sources, string sourceDir, string sourcesExt,
                             string outputDir, string outputExt) {
       Context = ctx;
       Sources = sources;
@@ -44,7 +42,7 @@ namespace Bud {
       Run(executablePath, args, cwd: cwd ?? BaseDir, env: env);
     }
 
-    private BuildContext Context { get; }
+    private BuildTaskContext Context { get; }
 
     /// <summary>
     /// The directory into which the task will place output files.
@@ -75,19 +73,6 @@ namespace Bud {
     /// </summary>
     public string SourcesExt { get; }
 
-    /// <inheritdoc />
-    public TextWriter Stdout => Context.Stdout;
-
-    /// <inheritdoc />
-    public Stopwatch BuildStopwatch => Context.BuildStopwatch;
-
-    /// <inheritdoc />
-    public int ThisTaskNumber => Context.ThisTaskNumber;
-
-    /// <inheritdoc />
-    public int TotalTasks => Context.TotalTasks;
-
-    /// <inheritdoc />
-    public string BaseDir => Context.BaseDir;
+    public string BaseDir => Context.SourceDir;
   }
 }

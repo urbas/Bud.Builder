@@ -54,7 +54,7 @@ namespace Bud {
     /// <param name="baseDir">the base directory against which to resolve the absolute path of
     /// <paramref name="dir"/>. If this parameter is <c>null</c> then the current working directory will be
     /// taken.</param>
-    /// <returns>the absolute path of <paramref name="dir"/> relative to <paramref name="baseDir"/>.</returns>
+    /// <returns>the absolute path of <paramref name="dir"/> resolved against <paramref name="baseDir"/>.</returns>
     public static string ToAbsDir(string dir, string baseDir = null) {
       if (string.IsNullOrEmpty(dir)) {
         return baseDir ?? Directory.GetCurrentDirectory();
