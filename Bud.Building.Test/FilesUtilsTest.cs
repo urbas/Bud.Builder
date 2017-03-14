@@ -74,20 +74,6 @@ namespace Bud {
     }
 
     [Test]
-    public void ToAbsDir_dir_null() => Assert.AreEqual("/foo/bar", ToAbsDir(null, "/foo/bar"));
-
-    [Test]
-    public void ToAbsDir_dir_empty() => Assert.AreEqual("/foo/bar", ToAbsDir(string.Empty, "/foo/bar"));
-
-    [Test]
-    public void ToAbsDir_relative()
-      => Assert.AreEqual(Path.Combine("/foo/bar", "not/yet/abs"), ToAbsDir("not/yet/abs", "/foo/bar"));
-
-    [Test]
-    public void ToAbsDir_already_abs()
-      => Assert.AreEqual("/already/abs", ToAbsDir("/already/abs", "/foo/bar"));
-
-    [Test]
     public void CopyTree_invalid_source_dir() {
       var exception = Assert.Throws<Exception>(() => CopyTree("/invalid/directory", "/moot"));
       Assert.AreEqual(exception.Message, "The directory '/invalid/directory' does not exist.");

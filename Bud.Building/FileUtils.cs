@@ -49,37 +49,6 @@ namespace Bud {
       return ImmutableArray<string>.Empty;
     }
 
-    /// <param name="dir">if this directory is a relative path, then it will be resolved against
-    /// <paramref name="baseDir"/></param>
-    /// <param name="baseDir">the base directory against which to resolve the absolute path of
-    /// <paramref name="dir"/>. If this parameter is <c>null</c> then the current working directory will be
-    /// taken.</param>
-    /// <returns>the absolute path of <paramref name="dir"/> resolved against <paramref name="baseDir"/>.</returns>
-    public static string ToAbsDir(string dir, string baseDir = null) {
-      if (string.IsNullOrEmpty(dir)) {
-        return baseDir ?? Directory.GetCurrentDirectory();
-      }
-      return Path.Combine(baseDir ?? Directory.GetCurrentDirectory(), dir);
-    }
-
-    /// <summary>
-    /// Deletes files in the directory with the given file extension that are not in the list of
-    /// <paramref name="allowedFiles"/>.
-    /// </summary>
-    /// <param name="dir">the directory from which to delete files.</param>
-    /// <param name="allowedFiles">the list of only allowed files in the directory. The paths in this collection
-    /// should be absolute. This method uses the <see cref="ICollection{T}.Contains"/> method to check whether
-    /// a path is allowed.</param>
-    /// <param name="fileExtension">the extension the files to delete should match. Other files will not be
-    /// touched.</param>
-    public static void DeleteExtraneousFiles(string dir, IImmutableSet<string> allowedFiles, string fileExtension = "") {
-      foreach (var outputFile in FindFilesByExt(dir, fileExtension)) {
-        if (!allowedFiles.Contains(outputFile)) {
-          File.Delete(outputFile);
-        }
-      }
-    }
-
     /// <summary>
     ///   Recursively copies all files and directories from the source into the target directory.
     /// </summary>
