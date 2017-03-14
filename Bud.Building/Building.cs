@@ -43,15 +43,24 @@ namespace Bud {
     /// </summary>
     /// <param name="task">the task that describes the build.</param>
     /// <param name="stdout">the writer to which to print all the build output.</param>
-    /// <param name="baseDir">the directory in which the build is to be executed. By default the current working
-    /// directory is used.</param>
-    /// <param name="metaDir">the directory where meta information about the build system is stored. By default
-    /// the subdirectory `.bud` in the base directory is used.</param>
+    /// <param name="baseDir">
+    ///   the directory in which the build is to be executed. By default the current working
+    ///   directory is used.
+    /// </param>
+    /// <param name="outputDir">
+    ///   the directory where the final output of the build should be placed. By default the
+    ///   sudirectory <see cref="OutputDirName"/> of the <paramref name="baseDir"/> is used.
+    /// </param>
+    /// <param name="metaDir">
+    ///   the directory where meta information about the build system is stored.  By default the
+    ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="baseDir"/> is used.
+    /// </param>
     public static void RunBuild(IBuildTask task,
                                 TextWriter stdout = null,
                                 string baseDir = null,
+                                string outputDir = null,
                                 string metaDir = null)
-      => RunBuild(new[] {task}, stdout, baseDir, metaDir);
+      => RunBuild(new[] {task}, stdout, baseDir, outputDir, metaDir);
 
     /// <summary>
     ///   Executes the build described by the build tasks.
