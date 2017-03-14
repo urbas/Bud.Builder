@@ -190,7 +190,7 @@ namespace Bud {
                          dependenciesResults);
       }
 
-      var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
+      var buildTaskResult = new BuildTaskResult(taskSignature, taskOutputDir, dependenciesResults);
       buildTasksToResults.TryAdd(buildTask, buildTaskResult);
     }
 
