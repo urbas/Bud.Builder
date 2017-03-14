@@ -8,20 +8,15 @@ namespace Bud {
   /// </summary>
   public static class Building {
     /// <summary>
-    ///   The default name of the directory where the build executor will put all the build meta data.
+    ///   The default name of the directory where the build execution engine will put intermediate build artifacts and
+    ///   its meta data.
     /// </summary>
-    /// <remarks>
-    ///   Examples of build metadata:
-    ///
-    ///     -  task signatures of the last execution.
-    /// </remarks>
-    public const string BuildMetaDirName = ".bud";
+    public const string MetaDirName = ".bud";
 
     /// <summary>
-    ///   The name of the directory that contains task signatures. This directory lives under the build meta data
-    ///   directory.
+    ///   The default name of the directory where the final artifacts of the build will be placed.
     /// </summary>
-    public const string TaskSignaturesDirName = "task_signatures";
+    public const string OutputDirName = "output";
 
     /// <summary>
     ///   Creates a build task where multiple sources are built into multiple output files.
@@ -63,18 +58,28 @@ namespace Bud {
     /// </summary>
     /// <param name="tasks">the tasks that describe the build.</param>
     /// <param name="stdout">the writer to which to print all the build output.</param>
-    /// <param name="baseDir">the directory in which the build is to be executed. By default the current working
-    /// directory is used.</param>
-    /// <param name="metaDir">the directory where meta information about the build system is stored. By default
-    /// the subdirectory `.bud` in the base directory is used.</param>
+    /// <param name="baseDir">
+    ///   the directory in which the build is to be executed. By default the current working
+    ///   directory is used.
+    /// </param>
+    /// <param name="outputDir">
+    ///   the directory where the final output of the build should be placed. By default the
+    ///   sudirectory <see cref="OutputDirName"/> of the <paramref name="baseDir"/> is used.
+    /// </param>
+    /// <param name="metaDir">
+    ///   the directory where meta information about the build system is stored.  By default the
+    ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="baseDir"/> is used.
+    /// </param>
     public static void RunBuild(IEnumerable<IBuildTask> tasks,
                                 TextWriter stdout = null,
                                 string baseDir = null,
+                                string outputDir = null,
                                 string metaDir = null) {
       var buildTasks = tasks as IList<IBuildTask> ?? tasks.ToList();
       baseDir = baseDir ?? Directory.GetCurrentDirectory();
-      metaDir = metaDir ?? Path.Combine(baseDir, BuildMetaDirName);
-      IsodExecutionEngine.Execute(baseDir, Path.Combine(baseDir, "build"), metaDir, buildTasks);
+      metaDir = metaDir ?? Path.Combine(baseDir, MetaDirName);
+      outputDir = outputDir ?? Path.Combine(baseDir, "build");
+      IsodExecutionEngine.Execute(baseDir, outputDir, metaDir, buildTasks);
     }
   }
 }
