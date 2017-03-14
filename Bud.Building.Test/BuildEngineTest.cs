@@ -139,6 +139,28 @@ namespace Bud {
     }
 
     [Test]
+    public void TestExecute_UnfinishedCleaned() {
+      using (var tmpDir = new TmpDir()) {
+        var partialTask = MockBuildTasks.NoOp("task1").WithExecuteAction((ctx, deps) => {
+          File.WriteAllText(Path.Combine(ctx.OutputDir, "foo"), "42");
+          throw new Exception("Test exception");
+        });
+        try {
+          BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), partialTask.Object);
+        } catch (Exception) {
+          // ignored
+        }
+        var fullTask = MockBuildTasks.NoOp("task1").WithExecuteAction((ctx, deps) => {
+          File.WriteAllText(Path.Combine(ctx.OutputDir, "bar"), "9001");
+        });
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fullTask.Object);
+
+        FileAssert.AreEqual(tmpDir.CreateFile("9001"), tmpDir.CreatePath("out", "bar"));
+        FileAssert.DoesNotExist(tmpDir.CreatePath("out", "foo"));
+      }
+    }
+
+    [Test]
     public void TestExecute_StressTest() {
       for (int i = 0; i < 5; i++) {
         using (var tmpDir = new TmpDir()) {

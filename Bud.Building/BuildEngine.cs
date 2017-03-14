@@ -118,6 +118,9 @@ namespace Bud {
 
     private void CreateMetaOutputDirs() {
       CreateDirectory(DoneOutputsDir);
+      if (Exists(PartialOutputsDir)) {
+        Delete(PartialOutputsDir, recursive: true);
+      }
       CreateDirectory(PartialOutputsDir);
     }
 
@@ -186,7 +189,7 @@ namespace Bud {
         if (!Exists(taskOutputDir)) {
           var partialTaskOutputDir = Combine(PartialOutputsDir, taskSignature);
           ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, SourceDir,
-          dependenciesResults);
+                           dependenciesResults);
         }
 
         var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
