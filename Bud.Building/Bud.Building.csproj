@@ -51,6 +51,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildTaskContext.cs" />
+    <Compile Include="BuildTaskResult.cs" />
     <Compile Include="GlobBuildCommand.cs" />
     <Compile Include="GlobBuildContext.cs" />
     <Compile Include="GlobBuildTask.cs" />
@@ -58,6 +60,7 @@
     <Compile Include="FileUtils.cs" />
     <Compile Include="HexUtils.cs" />
     <Compile Include="BuildEngine.cs" />
+    <Compile Include="IBuildTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sha256Signer.cs" />
   </ItemGroup>

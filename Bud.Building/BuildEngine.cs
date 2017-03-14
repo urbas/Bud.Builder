@@ -37,7 +37,13 @@ namespace Bud {
   ///   into the output directory.
   /// </remarks>
   public class BuildEngine {
+    /// <summary>
+    ///   The directory where all sources of the build are located.
+    /// </summary>
     public string SourceDir { get; }
+    /// <summary>
+    ///   The directory where all output files should end up.
+    /// </summary>
     public string OutputDir { get; }
     public string MetaDir { get; }
     public string DoneOutputsDir { get; }
@@ -189,48 +195,6 @@ namespace Bud {
         throw new Exception($"Tasks '{storedTask.Name}' and '{buildTask.Name}' are clashing. " +
                             $"They have the same signature '{taskSignature}'.");
       }
-    }
-  }
-
-  public interface IBuildTask {
-    void Execute(BuildTaskContext context, ImmutableArray<BuildTaskResult> dependencyResults);
-    ImmutableArray<IBuildTask> Dependencies { get; }
-    string Name { get; }
-
-    /// <param name="ctx">this object contains the source directory of the current build, the output directory where
-    ///   this task should place its files, and other information about the current build.</param>
-    /// <param name="dependencyResults">the results of dependent build tasks.</param>
-    /// <returns>
-    ///   A hex string or a URL- and filename-safe Base64 string (i.e.: base64url). This signature should be a
-    ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
-    ///   environment variables, the task's algorithm, and other factors that affect the task's output.
-    /// </returns>
-    string GetSignature(string ctx, ImmutableArray<BuildTaskResult> dependencyResults);
-  }
-
-  public class BuildTaskContext {
-    public string OutputDir { get; }
-    public string SourceDir { get; }
-
-    public BuildTaskContext(string outputDir, string sourceDir) {
-      OutputDir = outputDir;
-      SourceDir = sourceDir;
-    }
-  }
-
-  public class BuildTaskResult {
-    private readonly IBuildTask buildTask;
-    public string TaskName => buildTask.Name;
-    public string TaskSignature { get; }
-    public string TaskOutputDir { get; }
-    public ImmutableArray<BuildTaskResult> DependenciesResults { get; }
-
-    public BuildTaskResult(IBuildTask buildTask, string taskSignature, string taskOutputDir,
-                           ImmutableArray<BuildTaskResult> dependenciesResults) {
-      TaskSignature = taskSignature;
-      TaskOutputDir = taskOutputDir;
-      DependenciesResults = dependenciesResults;
-      this.buildTask = buildTask;
     }
   }
 }
