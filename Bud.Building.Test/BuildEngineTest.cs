@@ -7,13 +7,13 @@ using Moq;
 using NUnit.Framework;
 
 namespace Bud {
-  public class IsodExecutionEngineTest {
+  public class BuildEngineTest {
     [Test]
     public void TestExecute() {
       using (var tmpDir = new TmpDir()) {
         var fooTask = MockBuildTasks.GenerateFile("createFoo", "foo", "42").Object;
 
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTask);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTask);
 
         FileAssert.AreEqual(tmpDir.CreateFile("42"), tmpDir.CreatePath("out", "foo"));
       }
@@ -25,7 +25,7 @@ namespace Bud {
         var fooTask = MockBuildTasks.GenerateFile("createFoo", "foo", "42").Object;
         var barTask = MockBuildTasks.GenerateFile("createBar", "bar", "9001", fooTask).Object;
 
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTask);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTask);
 
         FileAssert.AreEqual(tmpDir.CreateFile("42"), tmpDir.CreatePath("out", "foo"));
         FileAssert.AreEqual(tmpDir.CreateFile("9001"), tmpDir.CreatePath("out", "bar"));
@@ -37,8 +37,8 @@ namespace Bud {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
 
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
 
         fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
       }
@@ -51,7 +51,7 @@ namespace Bud {
         var foo2TaskMock = MockBuildTasks.GenerateFile("createFoo2", "foo", "2", foo1TaskMock.Object);
 
         var exception = Assert.Throws<Exception>(() => {
-          IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), foo2TaskMock.Object);
+          BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), foo2TaskMock.Object);
         });
 
         Assert.That(exception.Message,
@@ -65,11 +65,11 @@ namespace Bud {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
         var barTaskMock = MockBuildTasks.GenerateFile("createBar", "bar", "9001", fooTaskMock.Object);
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock.Object);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock.Object);
 
         var changedFooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "changed");
         var barTaskMock2 = MockBuildTasks.GenerateFile("createBar", "bar", "9001", changedFooTaskMock.Object);
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock2.Object);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock2.Object);
 
         barTaskMock2.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
       }
@@ -82,7 +82,7 @@ namespace Bud {
         var barTaskMock = MockBuildTasks.GenerateFile("createBar", "bar", "9001",
                                                       fooTaskMock.Object, fooTaskMock.Object);
 
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock.Object);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock.Object);
 
         fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
       }
@@ -103,7 +103,7 @@ namespace Bud {
           countdownLatch.Wait();
         });
 
-        IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), buildTask1Mock.Object, buildTask2Mock.Object);
+        BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), buildTask1Mock.Object, buildTask2Mock.Object);
       }
     }
 
@@ -114,7 +114,7 @@ namespace Bud {
         var task2Mock = MockBuildTasks.NoOp("task2", task1Mock.Object).WithSignature("foo");
 
         var exception = Assert.Throws<Exception>(() => {
-          IsodExecutionEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), task2Mock.Object);
+          BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), task2Mock.Object);
         });
 
         Assert.That(exception.Message,
@@ -132,7 +132,7 @@ namespace Bud {
         var sourceFile = tmpDir.CreateFile("42", "src", "foo");
         var task1Mock = MockBuildTasks.CopySourceFile("task1", "foo", "bar");
 
-        IsodExecutionEngine.Execute(sourceDir, outputDir, metaDir, task1Mock.Object);
+        BuildEngine.Execute(sourceDir, outputDir, metaDir, task1Mock.Object);
 
         FileAssert.AreEqual(sourceFile, Path.Combine(outputDir, "bar"));
       }
@@ -149,7 +149,7 @@ namespace Bud {
           var generatedFiles = Enumerable.Range(0, 10).Select(idx => $"file_{idx}").ToList();
           var fileGenerators = generatedFiles.Select(file => MockBuildTasks.GenerateFile(file, file, file).Object);
 
-          IsodExecutionEngine.Execute(sourceDir, outputDir, metaDir, fileGenerators);
+          BuildEngine.Execute(sourceDir, outputDir, metaDir, fileGenerators);
 
           foreach (var generatedFile in generatedFiles) {
             FileAssert.AreEqual(tmpDir.CreateFile(generatedFile), Path.Combine(outputDir, generatedFile));

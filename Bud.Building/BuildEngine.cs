@@ -9,45 +9,38 @@ using static Bud.FileUtils;
 
 namespace Bud {
   /// <summary>
-  ///   The name of this class stands for Isolated Signed Output Directories Execution Engine.
-  ///
-  ///   This execution engine creates an output directory for each task.
+  ///   This build engine tries to isolate tasks by creating a signed output directory for each task.
   /// </summary>
   /// <remarks>
-  ///   Assuming that task A has not yet been executed. Here's how this execution engine will execute task A:
+  ///   Here's how this engine processes a build task:
   ///
   ///   <ul>
+  ///     <li>Execute all direct dependencies of task A.</li>
+  ///
   ///     <li>Retrieve the signature of task A.</li>
   ///
-  ///     <li>There is no output directory that corresponds to the signature.</li>
+  ///     <li>Check that no other task has the same signature.</li>
   ///
-  ///     <li>Create a directory where the task should place its output files.</li>
+  ///     <li>Check if an output directory with same signature already exists.</li>
   ///
-  ///     <li>Create a build context for the task. The build context contains the path of the output directory where the
-  ///       task should place its files, a list of output directories of the task's dependencies, and some other
-  ///       ancillary information.</li>
+  ///     <li>If the directory exists, go to the last step, if not, continue with the next step.</li>
   ///
-  ///     <li>Execute the task and wait for it to finish.</li>
+  ///     <li>Create a temporary directory and ask the task to place its output into this directory.</li>
+  ///
+  ///     <li>Abort the build if the task threw an exception. If not, rename the temporary directory to the
+  ///     signature of the task.</li>
+  ///
+  ///     <li>Store the output directory in a list.</li>
   ///   </ul>
   ///
-  ///
-  ///   Assuming that task A was already executed. Here's how this exection engine will execute task A:
-  ///
-  ///   <ul>
-  ///     <li>Retrieve the signature of task A.</li>
-  ///
-  ///     <li>Find the task output directory that corresponds to the signature.</li>
-  ///
-  ///     <li>The directory is present.</li>
-  ///
-  ///     <li>Do not execute the task.</li>
-  ///   </ul>
+  ///   The end result is a list of all output directories. The engine now copies the contents of all output directories
+  ///   into the output directory.
   /// </remarks>
-  public class IsodExecutionEngine {
+  public class BuildEngine {
     ///  <summary>
     ///  </summary>
     /// <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
-    /// <param name="buildDir">
+    /// <param name="outputDir">
     ///   the directory in which all build output will be placed (including build metadata).
     /// </param>
     /// <param name="metaDir">the directory in which the execution engine will store temporary build artifacts and
@@ -55,13 +48,13 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
     ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static void Execute(string sourceDir, string buildDir, string metaDir, params IBuildTask[] buildTasks)
-      => Execute(sourceDir, buildDir, metaDir, buildTasks as IEnumerable<IBuildTask>);
+    public static void Execute(string sourceDir, string outputDir, string metaDir, params IBuildTask[] buildTasks)
+      => Execute(sourceDir, outputDir, metaDir, buildTasks as IEnumerable<IBuildTask>);
 
     ///  <summary>
     ///  </summary>
     ///  <param name="sourceDir">the directory in which all the sources relevant to the build reside.</param>
-    ///  <param name="buildDir">
+    ///  <param name="outputDir">
     ///    the directory in which all build output will be placed (including build metadata).
     ///  </param>
     /// <param name="metaDir">the directory in which the execution engine will store temporary build artifacts and
@@ -69,8 +62,8 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     ///  <returns>an object containing information about the resulting build.</returns>
     ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static void Execute(string sourceDir, string buildDir, string metaDir, IEnumerable<IBuildTask> buildTasks) {
-      var buildExecutionContext = new BuildExecutionContext(sourceDir, buildDir, metaDir);
+    public static void Execute(string sourceDir, string outputDir, string metaDir, IEnumerable<IBuildTask> buildTasks) {
+      var buildExecutionContext = new BuildExecutionContext(sourceDir, outputDir, metaDir);
       ExecuteBuildTasks(buildTasks, buildExecutionContext);
       AssertNoClashingFiles(buildExecutionContext);
       CopyOutputToOutputDir(buildExecutionContext);

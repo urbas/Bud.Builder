@@ -88,7 +88,7 @@ namespace Bud {
       baseDir = baseDir ?? Directory.GetCurrentDirectory();
       metaDir = metaDir ?? Path.Combine(baseDir, MetaDirName);
       outputDir = outputDir ?? Path.Combine(baseDir, "build");
-      IsodExecutionEngine.Execute(baseDir, outputDir, metaDir, buildTasks);
+      BuildEngine.Execute(baseDir, outputDir, metaDir, buildTasks);
     }
   }
 }

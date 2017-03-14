@@ -57,7 +57,7 @@
     <Compile Include="Building.cs" />
     <Compile Include="FileUtils.cs" />
     <Compile Include="HexUtils.cs" />
-    <Compile Include="IsodExecutionEngine.cs" />
+    <Compile Include="BuildEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sha256Signer.cs" />
   </ItemGroup>
