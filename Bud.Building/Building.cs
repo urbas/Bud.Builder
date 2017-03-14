@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static System.IO.Directory;
+using static System.IO.Path;
 
 namespace Bud {
   /// <summary>
@@ -87,9 +89,9 @@ namespace Bud {
                                 string outputDir = null,
                                 string metaDir = null) {
       var buildTasks = tasks as IList<IBuildTask> ?? tasks.ToList();
-      sourceDir = sourceDir ?? Directory.GetCurrentDirectory();
-      metaDir = metaDir ?? Path.Combine(sourceDir, MetaDirName);
-      outputDir = outputDir ?? Path.Combine(sourceDir, OutputDirName);
+      sourceDir = sourceDir != null ? Combine(GetCurrentDirectory(), sourceDir) : GetCurrentDirectory();
+      metaDir = metaDir != null ? Combine(GetCurrentDirectory(), metaDir) : Combine(sourceDir, MetaDirName);
+      outputDir = outputDir != null ? Combine(GetCurrentDirectory(), outputDir) : Combine(sourceDir, OutputDirName);
       BuildEngine.Execute(sourceDir, outputDir, metaDir, buildTasks);
     }
   }
