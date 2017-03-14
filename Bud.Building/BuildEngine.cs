@@ -41,12 +41,25 @@ namespace Bud {
     ///   The directory where all sources of the build are located.
     /// </summary>
     public string SourceDir { get; }
+
     /// <summary>
     ///   The directory where all output files should end up.
     /// </summary>
     public string OutputDir { get; }
+
+    /// <summary>
+    ///   The directory where this engine will place its build meta files, cached etc.
+    /// </summary>
     public string MetaDir { get; }
+
+    /// <summary>
+    ///   The directory inside <see cref="MetaDir"/> where finished output directories are located.
+    /// </summary>
     public string DoneOutputsDir { get; }
+
+    /// <summary>
+    ///   The directory inside <see cref="MetaDir"/> where unfinished output directories are located.
+    /// </summary>
     public string PartialOutputsDir { get; }
 
     /// <summary>
@@ -93,9 +106,8 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     ///  <returns>an object containing information about the resulting build.</returns>
     ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static void Execute(string sourceDir, string outputDir, string metaDir, IEnumerable<IBuildTask> buildTasks) {
-      new BuildEngine(sourceDir, outputDir, metaDir).Execute(buildTasks);
-    }
+    public static void Execute(string sourceDir, string outputDir, string metaDir, IEnumerable<IBuildTask> buildTasks)
+      => new BuildEngine(sourceDir, outputDir, metaDir).Execute(buildTasks);
 
     private void Execute(IEnumerable<IBuildTask> buildTasks) {
       CreateMetaOutputDirs();
