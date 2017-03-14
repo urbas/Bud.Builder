@@ -13,9 +13,8 @@ namespace Bud {
     /// <summary>
     ///   Creates a new context with the given information.
     /// </summary>
-    public GlobBuildContext(BuildTaskContext ctx, IImmutableSet<string> sources, string sourceDir, string sourcesExt,
-                            string outputDir, string outputExt) {
-      Context = ctx;
+    public GlobBuildContext(IImmutableSet<string> sources, string sourceDir, string sourcesExt, string outputDir,
+                            string outputExt) {
       Sources = sources;
       SourceDir = sourceDir;
       SourcesExt = sourcesExt;
@@ -30,7 +29,7 @@ namespace Bud {
     /// <param name="executablePath">The executable to invoke.</param>
     /// <param name="args">The arguments to pass to the executable. You can use functions
     /// <see cref="Exec.Args(string[])"/> and <see cref="Exec.Arg"/> in this parameter.</param>
-    /// <param name="cwd">the working directory where the process should run. If not given, <see cref="BaseDir"/> will
+    /// <param name="cwd">the working directory where the process should run. If not given, <see cref="OutputDir"/> will
     /// be used.</param>
     /// <param name="env">the environment to pass to the process. If none given, the process will inherit the
     /// environment from this process.</param>
@@ -39,10 +38,8 @@ namespace Bud {
     /// </remarks>
     public void Command(string executablePath, string args = null, string cwd = null,
                         IDictionary<string, string> env = null) {
-      Run(executablePath, args, cwd: cwd ?? BaseDir, env: env);
+      Run(executablePath, args, cwd: cwd ?? OutputDir, env: env);
     }
-
-    private BuildTaskContext Context { get; }
 
     /// <summary>
     /// The directory into which the task will place output files.
@@ -72,7 +69,5 @@ namespace Bud {
     ///   The extension of source files.
     /// </summary>
     public string SourcesExt { get; }
-
-    public string BaseDir => Context.SourceDir;
   }
 }

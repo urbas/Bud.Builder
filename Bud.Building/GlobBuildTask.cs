@@ -132,7 +132,7 @@ namespace Bud {
       var absoluteSourceDir = AbsoluteSourceDir(ctx.SourceDir);
       var absoluteOutputDir = AbsoluteOutputDir(ctx.OutputDir);
       var sources = FindFilesByExt(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
-      var globBuildContext = new GlobBuildContext(ctx, sources, absoluteSourceDir, SourceExt, absoluteOutputDir, OutputExt);
+      var globBuildContext = new GlobBuildContext(sources, absoluteSourceDir, SourceExt, absoluteOutputDir, OutputExt);
       Command(globBuildContext);
     }
 
