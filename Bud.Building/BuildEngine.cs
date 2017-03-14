@@ -175,27 +175,26 @@ namespace Bud {
       => ToTaskGraph(buildTask, buildTask.Dependencies.Select(GetOrCreateTaskGraph).ToImmutableArray());
 
     private TaskGraph ToTaskGraph(IBuildTask buildTask, ImmutableArray<TaskGraph> dependenciesTaskGraphs)
-      => new TaskGraph(() => {
-        // At this point all dependencies will have been evaluated, so their results will be available.
-        var dependenciesResults = buildTask.Dependencies
-                                           .Select(task => buildTasksToResults[task])
-                                           .ToImmutableArray();
+      => new TaskGraph(() => ToTaskGraphAction(buildTask), dependenciesTaskGraphs);
 
-        var taskSignature = buildTask.GetSignature(SourceDir, dependenciesResults);
+    private void ToTaskGraphAction(IBuildTask buildTask) {
+      // At this point all dependencies will have been evaluated.
+      var dependenciesResults = buildTask.Dependencies.Select(GetBuildTaskResult).ToImmutableArray();
+      var taskSignature = buildTask.GetSignature(SourceDir, dependenciesResults);
+      AssertUniqueSignature(buildTask, taskSignature);
 
-        AssertUniqueSignature(buildTask, taskSignature);
+      var taskOutputDir = Combine(DoneOutputsDir, taskSignature);
+      if (!Exists(taskOutputDir)) {
+        var partialTaskOutputDir = Combine(PartialOutputsDir, taskSignature);
+        ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, SourceDir,
+                         dependenciesResults);
+      }
 
-        var taskOutputDir = Combine(DoneOutputsDir, taskSignature);
-        if (!Exists(taskOutputDir)) {
-          var partialTaskOutputDir = Combine(PartialOutputsDir, taskSignature);
-          ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, SourceDir,
-                           dependenciesResults);
-        }
+      var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
+      buildTasksToResults.TryAdd(buildTask, buildTaskResult);
+    }
 
-        var buildTaskResult = new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
-
-        buildTasksToResults.TryAdd(buildTask, buildTaskResult);
-      }, dependenciesTaskGraphs);
+    private BuildTaskResult GetBuildTaskResult(IBuildTask task) => buildTasksToResults[task];
 
     private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir,
                                          string sourceDir, ImmutableArray<BuildTaskResult> dependenciesResults) {
