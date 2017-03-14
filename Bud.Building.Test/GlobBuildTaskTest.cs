@@ -19,10 +19,8 @@ namespace Bud {
                                                                 $"--outDir {Arg(ctx.OutputDir)} " +
                                                                 $"--outExt .txt.nospace " +
                                                                 $"{Args(ctx.Sources)}"),
-                         sourceDir: "src",
                          sourceExt: ".txt",
-                         outputDir: "",
-                         outputExt: ".txt.nospace");
+                         outputExt: ".txt.nospace", sourceDir: "src", outputDir: "");
 
         RunBuild(task, stdout: new StringWriter(), sourceDir: dir.Path);
 
@@ -119,10 +117,8 @@ namespace Bud {
                            TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir, ctx.OutputExt);
                            throw new Exception("failure");
                          },
-                         sourceDir: "src",
                          sourceExt: "txt",
-                         outputDir: "",
-                         outputExt: ".txt.nospace"),
+                         outputExt: ".txt.nospace", sourceDir: "src", outputDir: ""),
                    stdout: new StringWriter(),
                    sourceDir: dir.Path);
         } catch (Exception) {
@@ -200,6 +196,29 @@ namespace Bud {
 
         FileAssert.AreEqual(expectedOutput, dir.CreatePath("output", "foo.nospace1"));
         FileAssert.AreEqual(expectedOutput, dir.CreatePath("output", "foo.nospace2"));
+      }
+    }
+
+    [Test]
+    public void Build_README_example() {
+      using (var dir = new TmpDir()) {
+        dir.CreateFile("  foo  ", "src", "foo.txt");
+        dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
+
+        var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} " +
+                                                                $"--outDir {Arg(ctx.OutputDir)} " +
+                                                                $"--outExt .txt.nospace " +
+                                                                $"{Args(ctx.Sources)}"),
+                         sourceExt: ".txt",
+                         outputExt: ".txt.nospace");
+
+        RunBuild(task, stdout: new StringWriter(), sourceDir: dir.CreateDir("src"), outputDir: dir.CreateDir("out/nospace"));
+
+        FileAssert.AreEqual(dir.CreateFile("foo"),
+                            dir.CreatePath("out", "nospace", "foo.txt.nospace"));
+
+        FileAssert.AreEqual(dir.CreateFile("bar"),
+                            dir.CreatePath("out", "nospace", "subdir", "bar.txt.nospace"));
       }
     }
 

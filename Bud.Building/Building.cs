@@ -24,22 +24,22 @@ namespace Bud {
     ///   Creates a build task where multiple sources are built into multiple output files.
     /// </summary>
     /// <param name="command">this function performs the actual build.</param>
+    /// <param name="sourceExt">the extension of source files.</param>
+    /// <param name="outputExt">the extension of output files.</param>
     /// <param name="sourceDir">
     ///   the directory within the root source directory in which to search for source files.
     /// </param>
-    /// <param name="sourceExt">the extension of source files.</param>
     /// <param name="outputDir">
     ///   the directory within the root output directory where output files should be placed.
     /// </param>
-    /// <param name="outputExt">the extension of output files.</param>
     /// <param name="signature">see <see cref="GlobBuildTask.Salt"/></param>
     /// <param name="dependsOn">other build tasks that this task depends on.</param>
     /// <returns>a build task that can be executed or can be used as a dependency of another task.</returns>
     public static GlobBuildTask Build(GlobBuildCommand command,
-                                      string sourceDir,
                                       string sourceExt,
-                                      string outputDir,
                                       string outputExt,
+                                      string sourceDir = "",
+                                      string outputDir = "",
                                       string signature = null,
                                       IEnumerable<IBuildTask> dependsOn = null)
       => new GlobBuildTask(command, sourceDir, sourceExt, outputDir, outputExt, signature, dependsOn);
