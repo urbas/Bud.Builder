@@ -9,18 +9,16 @@ using NUnit.Framework;
 namespace Bud {
   public class BuildEngineTest {
     [Test]
-    public void TestExecute() {
+    public void TestExecute_places_output_into_OutputDir() {
       using (var tmpDir = new TmpDir()) {
         var fooTask = MockBuildTasks.GenerateFile("createFoo", "foo", "42").Object;
-
         BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTask);
-
         FileAssert.AreEqual(tmpDir.CreateFile("42"), tmpDir.CreatePath("out", "foo"));
       }
     }
 
     [Test]
-    public void TestExecute_Dependencies() {
+    public void TestExecute_executes_dependencies() {
       using (var tmpDir = new TmpDir()) {
         var fooTask = MockBuildTasks.GenerateFile("createFoo", "foo", "42").Object;
         var barTask = MockBuildTasks.GenerateFile("createBar", "bar", "9001", fooTask).Object;
@@ -33,7 +31,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_Once() {
+    public void TestExecute_executes_the_same_tasks_once() {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
 
@@ -45,7 +43,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_ClashingOutput() {
+    public void TestExecute_throws_when_two_tasks_produce_file_with_same_name() {
       using (var tmpDir = new TmpDir()) {
         var foo1TaskMock = MockBuildTasks.GenerateFile("createFoo1", "foo", "1");
         var foo2TaskMock = MockBuildTasks.GenerateFile("createFoo2", "foo", "2", foo1TaskMock.Object);
@@ -61,7 +59,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_DependenciesChange() {
+    public void TestExecute_rebuilds_task_when_signature_changes() {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
         var barTaskMock = MockBuildTasks.GenerateFile("createBar", "bar", "9001", fooTaskMock.Object);
@@ -76,7 +74,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_DuplicateDependenciesExecutedOnce() {
+    public void TestExecute_same_dependencies_are_executed_once() {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
         var barTaskMock = MockBuildTasks.GenerateFile("createBar", "bar", "9001",
@@ -89,7 +87,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_ParallelExecution() {
+    public void TestExecute_executes_tasks_in_parallel() {
       using (var tmpDir = new TmpDir()) {
         var countdownLatch = new CountdownEvent(2);
 
@@ -108,7 +106,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_ClashingSignature() {
+    public void TestExecute_throws_when_two_tasks_have_the_same_signature() {
       using (var tmpDir = new TmpDir()) {
         var task1Mock = MockBuildTasks.NoOp("task1").WithSignature("foo");
         var task2Mock = MockBuildTasks.NoOp("task2", task1Mock.Object).WithSignature("foo");
@@ -124,7 +122,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_Source() {
+    public void TestExecute_passes_the_source_dir_to_tasks() {
       using (var tmpDir = new TmpDir()) {
         var sourceDir = tmpDir.CreateDir("src");
         var outputDir = tmpDir.CreatePath("out");
@@ -139,7 +137,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_UnfinishedCleaned() {
+    public void TestExecute_cleans_unfinished_directories_before_starting_the_build() {
       using (var tmpDir = new TmpDir()) {
         var partialTask = MockBuildTasks.NoOp("task1").WithExecuteAction((ctx, deps) => {
           File.WriteAllText(Path.Combine(ctx.OutputDir, "foo"), "42");
@@ -161,7 +159,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_StressTest() {
+    public void TestExecute_does_not_have_race_conditions() {
       for (int i = 0; i < 5; i++) {
         using (var tmpDir = new TmpDir()) {
           var sourceDir = tmpDir.CreateDir("src");
