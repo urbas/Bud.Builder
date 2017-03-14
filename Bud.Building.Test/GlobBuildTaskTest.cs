@@ -24,13 +24,13 @@ namespace Bud {
                          outputDir: "",
                          outputExt: ".txt.nospace");
 
-        RunBuild(task, stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(task, stdout: new StringWriter(), sourceDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
-                            dir.CreatePath("build", "foo.txt.nospace"));
+                            dir.CreatePath("output", "foo.txt.nospace"));
 
         FileAssert.AreEqual(dir.CreateFile("bar", "bar.expected"),
-                            dir.CreatePath("build", "subdir", "bar.txt.nospace"));
+                            dir.CreatePath("output", "subdir", "bar.txt.nospace"));
       }
     }
 
@@ -38,11 +38,11 @@ namespace Bud {
     public void Command_not_reinvoked() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        var outputFile = dir.CreatePath("build", "foo.txt.nospace");
+        var outputFile = dir.CreatePath("output", "foo.txt.nospace");
 
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
         var modificationTime = File.GetLastWriteTimeUtc(outputFile);
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
 
         Assert.AreEqual(modificationTime, File.GetLastWriteTimeUtc(outputFile));
       }
@@ -53,12 +53,12 @@ namespace Bud {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
 
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
         dir.CreateFile("  foo2  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo2", "foo.expected"),
-                            dir.CreatePath("build", "foo.txt.nospace"));
+                            dir.CreatePath("output", "foo.txt.nospace"));
       }
     }
 
@@ -67,11 +67,11 @@ namespace Bud {
       using (var dir = new TmpDir()) {
         var srcFile = dir.CreateFile("  foo  ", "src", "foo.txt");
 
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
         File.Delete(srcFile);
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
 
-        FileAssert.DoesNotExist(dir.CreatePath("build", "foo.txt.nospace"));
+        FileAssert.DoesNotExist(dir.CreatePath("output", "foo.txt.nospace"));
       }
     }
 
@@ -80,15 +80,15 @@ namespace Bud {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
 
-        RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), sourceDir: dir.Path);
 
         dir.CreateFile("  foo2  ", "src", "foo.txt");
 
-        RunBuild(TrimTxtFiles(outputDir: "build1"), stdout: new StringWriter(), baseDir: dir.Path);
-        RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(outputDir: "build1"), stdout: new StringWriter(), sourceDir: dir.Path);
+        RunBuild(TrimTxtFiles(outputDir: "build2"), stdout: new StringWriter(), sourceDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo2", "foo.expected"),
-                            dir.CreatePath("build", "build2", "foo.txt.nospace"));
+                            dir.CreatePath("output", "build2", "foo.txt.nospace"));
       }
     }
 
@@ -96,14 +96,14 @@ namespace Bud {
     public void Build_tasks_rebuild_old_state() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
         dir.CreateFile("  foo2  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"),
-                            dir.CreatePath("build", "foo.txt.nospace"));
+                            dir.CreatePath("output", "foo.txt.nospace"));
       }
     }
 
@@ -111,7 +111,7 @@ namespace Bud {
     public void Half_finished_failed_task_does_not_prevent_subsequent_builds() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
 
         dir.CreateFile("  foo2  ", "src", "foo.txt");
         try {
@@ -124,15 +124,15 @@ namespace Bud {
                          outputDir: "",
                          outputExt: ".txt.nospace"),
                    stdout: new StringWriter(),
-                   baseDir: dir.Path);
+                   sourceDir: dir.Path);
         } catch (Exception) {
           // ignored
         }
 
         dir.CreateFile("  foo  ", "src", "foo.txt");
-        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(TrimTxtFiles(), stdout: new StringWriter(), sourceDir: dir.Path);
 
-        FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"), dir.CreatePath("build", "foo.txt.nospace"));
+        FileAssert.AreEqual(dir.CreateFile("foo", "foo.expected"), dir.CreatePath("output", "foo.txt.nospace"));
       }
     }
 
@@ -144,7 +144,7 @@ namespace Bud {
                                              TrimTxtFiles(outputDir: "bui", outputExt: "ld.out")
                                            },
                                            stdout: new StringWriter(),
-                                           baseDir: dir.Path));
+                                           sourceDir: dir.Path));
       }
     }
 
@@ -156,7 +156,7 @@ namespace Bud {
                                              TrimTxtFiles(sourceDir: "bar")
                                            },
                                            stdout: new StringWriter(),
-                                           baseDir: dir.Path));
+                                           sourceDir: dir.Path));
       }
     }
 
@@ -168,7 +168,7 @@ namespace Bud {
                                              TrimTxtFiles(sourceExt: ".bar")
                                            },
                                            stdout: new StringWriter(),
-                                           baseDir: dir.Path));
+                                           sourceDir: dir.Path));
       }
     }
 
@@ -182,7 +182,7 @@ namespace Bud {
         var fooTask = TrimTxtFiles(sourceDir: "src1");
         var barTask = TrimTxtFiles(sourceDir: "src2", dependsOn: new[] {fooTask});
 
-        RunBuild(barTask, stdout: new StringWriter(), baseDir: dir.Path);
+        RunBuild(barTask, stdout: new StringWriter(), sourceDir: dir.Path);
 
         FileAssert.AreEqual(dir.CreateFile("foo", "expected.foo"), dir.CreatePath("build", "foo.txt.nospace"));
         FileAssert.AreEqual(dir.CreateFile("bar", "expected.bar"), dir.CreatePath("build", "bar.txt.nospace"));
@@ -196,10 +196,10 @@ namespace Bud {
         var expectedOutput = dir.CreateFile("foo", "foo.expected");
 
         RunBuild(new[] {TrimTxtFiles(outputExt: ".nospace1"), TrimTxtFiles(outputExt: ".nospace2")},
-                 stdout: new StringWriter(), baseDir: dir.Path);
+                 stdout: new StringWriter(), sourceDir: dir.Path);
 
-        FileAssert.AreEqual(expectedOutput, dir.CreatePath("build", "foo.nospace1"));
-        FileAssert.AreEqual(expectedOutput, dir.CreatePath("build", "foo.nospace2"));
+        FileAssert.AreEqual(expectedOutput, dir.CreatePath("output", "foo.nospace1"));
+        FileAssert.AreEqual(expectedOutput, dir.CreatePath("output", "foo.nospace2"));
       }
     }
 

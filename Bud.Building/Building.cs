@@ -22,9 +22,13 @@ namespace Bud {
     ///   Creates a build task where multiple sources are built into multiple output files.
     /// </summary>
     /// <param name="command">this function performs the actual build.</param>
-    /// <param name="sourceDir">the directory in which to search for source files.</param>
+    /// <param name="sourceDir">
+    ///   the directory within the root source directory in which to search for source files.
+    /// </param>
     /// <param name="sourceExt">the extension of source files.</param>
-    /// <param name="outputDir">the directory where output files will be placed.</param>
+    /// <param name="outputDir">
+    ///   the directory within the root output directory where output files should be placed.
+    /// </param>
     /// <param name="outputExt">the extension of output files.</param>
     /// <param name="signature">see <see cref="GlobBuildTask.Salt"/></param>
     /// <param name="dependsOn">other build tasks that this task depends on.</param>
@@ -43,52 +47,50 @@ namespace Bud {
     /// </summary>
     /// <param name="task">the task that describes the build.</param>
     /// <param name="stdout">the writer to which to print all the build output.</param>
-    /// <param name="baseDir">
-    ///   the directory in which the build is to be executed. By default the current working
-    ///   directory is used.
+    /// <param name="sourceDir">
+    ///   the directory with sources. By default the current working directory is used.
     /// </param>
     /// <param name="outputDir">
     ///   the directory where the final output of the build should be placed. By default the
-    ///   sudirectory <see cref="OutputDirName"/> of the <paramref name="baseDir"/> is used.
+    ///   sudirectory <see cref="OutputDirName"/> of the <paramref name="sourceDir"/> is used.
     /// </param>
     /// <param name="metaDir">
     ///   the directory where meta information about the build system is stored.  By default the
-    ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="baseDir"/> is used.
+    ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="sourceDir"/> is used.
     /// </param>
     public static void RunBuild(IBuildTask task,
                                 TextWriter stdout = null,
-                                string baseDir = null,
+                                string sourceDir = null,
                                 string outputDir = null,
                                 string metaDir = null)
-      => RunBuild(new[] {task}, stdout, baseDir, outputDir, metaDir);
+      => RunBuild(new[] {task}, stdout, sourceDir, outputDir, metaDir);
 
     /// <summary>
     ///   Executes the build described by the build tasks.
     /// </summary>
     /// <param name="tasks">the tasks that describe the build.</param>
     /// <param name="stdout">the writer to which to print all the build output.</param>
-    /// <param name="baseDir">
-    ///   the directory in which the build is to be executed. By default the current working
-    ///   directory is used.
+    /// <param name="sourceDir">
+    ///   the directory with sources. By default the current working directory is used.
     /// </param>
     /// <param name="outputDir">
     ///   the directory where the final output of the build should be placed. By default the
-    ///   sudirectory <see cref="OutputDirName"/> of the <paramref name="baseDir"/> is used.
+    ///   sudirectory <see cref="OutputDirName"/> of the <paramref name="sourceDir"/> is used.
     /// </param>
     /// <param name="metaDir">
     ///   the directory where meta information about the build system is stored.  By default the
-    ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="baseDir"/> is used.
+    ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="sourceDir"/> is used.
     /// </param>
     public static void RunBuild(IEnumerable<IBuildTask> tasks,
                                 TextWriter stdout = null,
-                                string baseDir = null,
+                                string sourceDir = null,
                                 string outputDir = null,
                                 string metaDir = null) {
       var buildTasks = tasks as IList<IBuildTask> ?? tasks.ToList();
-      baseDir = baseDir ?? Directory.GetCurrentDirectory();
-      metaDir = metaDir ?? Path.Combine(baseDir, MetaDirName);
-      outputDir = outputDir ?? Path.Combine(baseDir, "build");
-      BuildEngine.Execute(baseDir, outputDir, metaDir, buildTasks);
+      sourceDir = sourceDir ?? Directory.GetCurrentDirectory();
+      metaDir = metaDir ?? Path.Combine(sourceDir, MetaDirName);
+      outputDir = outputDir ?? Path.Combine(sourceDir, OutputDirName);
+      BuildEngine.Execute(sourceDir, outputDir, metaDir, buildTasks);
     }
   }
 }
