@@ -37,9 +37,8 @@ namespace Bud {
     ///   This method throws if the process fails.
     /// </remarks>
     public void Command(string executablePath, string args = null, string cwd = null,
-                        IDictionary<string, string> env = null) {
-      Run(executablePath, args, cwd: cwd ?? OutputDir, env: env);
-    }
+                        IDictionary<string, string> env = null)
+      => Run(executablePath, args, cwd: cwd ?? OutputDir, env: env);
 
     /// <summary>
     /// The directory into which the task will place output files.
