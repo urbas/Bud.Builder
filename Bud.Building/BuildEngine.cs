@@ -175,9 +175,9 @@ namespace Bud {
       => ToTaskGraph(buildTask, buildTask.Dependencies.Select(GetOrCreateTaskGraph).ToImmutableArray());
 
     private TaskGraph ToTaskGraph(IBuildTask buildTask, ImmutableArray<TaskGraph> dependenciesTaskGraphs)
-      => new TaskGraph(() => ToTaskGraphAction(buildTask), dependenciesTaskGraphs);
+      => new TaskGraph(() => GraphNodeAction(buildTask), dependenciesTaskGraphs);
 
-    private void ToTaskGraphAction(IBuildTask buildTask) {
+    private void GraphNodeAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.
       var dependenciesResults = buildTask.Dependencies.Select(GetBuildTaskResult).ToImmutableArray();
       var taskSignature = buildTask.Signature(SourceDir, dependenciesResults);
