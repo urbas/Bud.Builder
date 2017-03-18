@@ -46,7 +46,7 @@ namespace Bud {
 
     public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> buildTaskMock,
                                                  Func<string, ImmutableArray<BuildTaskResult>, string> signature) {
-      buildTaskMock.Setup(f => f.GetSignature(It.IsAny<string>(), It.IsAny<ImmutableArray<BuildTaskResult>>()))
+      buildTaskMock.Setup(f => f.Signature(It.IsAny<string>(), It.IsAny<ImmutableArray<BuildTaskResult>>()))
                    .Returns(signature);
       return buildTaskMock;
     }

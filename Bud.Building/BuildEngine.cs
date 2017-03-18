@@ -180,7 +180,7 @@ namespace Bud {
     private void ToTaskGraphAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.
       var dependenciesResults = buildTask.Dependencies.Select(GetBuildTaskResult).ToImmutableArray();
-      var taskSignature = buildTask.GetSignature(SourceDir, dependenciesResults);
+      var taskSignature = buildTask.Signature(SourceDir, dependenciesResults);
       AssertUniqueSignature(buildTask, taskSignature);
 
       var taskOutputDir = Combine(DoneOutputsDir, taskSignature);

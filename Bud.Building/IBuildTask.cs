@@ -52,6 +52,6 @@ namespace Bud {
     ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
     ///   environment variables, the task's algorithm, and other factors that affect the task's output.
     /// </returns>
-    string GetSignature(string ctx, ImmutableArray<BuildTaskResult> dependencyResults);
+    string Signature(string ctx, ImmutableArray<BuildTaskResult> dependencyResults);
   }
 }

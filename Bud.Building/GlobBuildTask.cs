@@ -139,7 +139,7 @@ namespace Bud {
     public ImmutableArray<IBuildTask> Dependencies { get; }
     public string Name => ToString();
 
-    public string GetSignature(string sourceDir, ImmutableArray<BuildTaskResult> dependencyResults) {
+    public string Signature(string sourceDir, ImmutableArray<BuildTaskResult> dependencyResults) {
       var sources = FindFilesByExt(AbsoluteSourceDir(sourceDir), SourceExt).ToImmutableSortedSet();
       return CalculateTaskSignature(sources);
     }
