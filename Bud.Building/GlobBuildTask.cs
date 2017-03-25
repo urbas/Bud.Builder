@@ -125,6 +125,8 @@ namespace Bud {
                            .Digest(OutputDir)
                            .Digest("OutputExt")
                            .Digest(OutputExt)
+                           .Digest("SAlt")
+                           .Digest(Salt)
                            .Finish()
                            .HexSignature;
 

@@ -194,6 +194,21 @@ namespace Bud {
     }
 
     [Test]
+    public void Rebuild_when_salt_changes() {
+      using (var dir = new TmpDir()) {
+        dir.CreateFile(" a foo a ", "src", "foo.txt");
+        var expectedOutput1 = dir.CreateFile("a foo a", "foo.expected.1");
+        var expectedOutput2 = dir.CreateFile("foo", "foo.expected.2");
+
+        RunBuild(TrimTxtFiles(outputExt: ".nospace"), sourceDir: dir.Path);
+        FileAssert.AreEqual(expectedOutput1, dir.CreatePath("output", "foo.nospace"));
+
+        RunBuild(TrimTxtFiles(outputExt: ".nospace", trimChars: "a "), sourceDir: dir.Path);
+        FileAssert.AreEqual(expectedOutput2, dir.CreatePath("output", "foo.nospace"));
+      }
+    }
+
+    [Test]
     public void Build_README_example() {
       using (var dir = new TmpDir()) {
         dir.CreateFile("  foo  ", "src", "foo.txt");
@@ -218,13 +233,14 @@ namespace Bud {
 
     private static GlobBuildTask TrimTxtFiles(string sourceDir = "src", string sourceExt = ".txt",
                                               string outputDir = "", string outputExt = ".txt.nospace",
-                                              IEnumerable<IBuildTask> dependsOn = null)
+                                              string trimChars = "", IEnumerable<IBuildTask> dependsOn = null)
       => new GlobBuildTask(command: ctx => TrimVerb.TrimTxtFiles(ctx.SourceDir, ctx.Sources, ctx.OutputDir,
-                                                                 ctx.OutputExt),
+                                                                 ctx.OutputExt, trimChars),
                            sourceDir: sourceDir,
                            sourceExt: sourceExt,
                            outputDir: outputDir,
                            outputExt: outputExt,
+                           salt: trimChars,
                            dependencies: dependsOn);
   }
 }

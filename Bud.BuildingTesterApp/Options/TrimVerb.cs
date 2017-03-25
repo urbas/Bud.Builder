@@ -20,23 +20,28 @@ namespace Bud.BuildingTesterApp.Options {
     [Option("outExt", HelpText = "The extension of output files.", Default = ".nospace")]
     public string OutExt { get; set; }
 
+    [Option("trimChars", HelpText = "The characters to trim.", Default = "")]
+    public string TrimChars { get; set; }
+
     [Value(0, MetaName = "SOURCE_FILES", HelpText = "The files to trim.", Default = new string[0])]
     public IEnumerable<string> SourceFiles { get; set; }
 
     public static int DoTrim(TrimVerb args) {
-      TrimTxtFiles(args.RootDir, args.SourceFiles, args.OutDir, args.OutExt);
+      TrimTxtFiles(args.RootDir, args.SourceFiles, args.OutDir, args.OutExt, args.TrimChars);
       return 0;
     }
 
-    public static void TrimTxtFiles(string srcDir, IEnumerable<string> srcFiles, string outDir, string outExt) {
+    public static void TrimTxtFiles(string srcDir, IEnumerable<string> srcFiles, string outDir, string outExt,
+                                    string trimChars = "") {
       var srcDirUri = new Uri($"{srcDir}/");
+      var trimCharsArray = trimChars.ToCharArray();
       foreach (var srcFile in srcFiles) {
-        TrimTxtFile(srcFile, outDir, srcDirUri, outExt);
+        TrimTxtFile(srcFile, outDir, srcDirUri, outExt, trimCharsArray);
       }
     }
 
-    private static void TrimTxtFile(string srcFile, string outDir, Uri srcDir, string outExt) {
-      var content = File.ReadAllText(srcFile).Trim();
+    private static void TrimTxtFile(string srcFile, string outDir, Uri srcDir, string outExt, char[] trimChars) {
+      var content = File.ReadAllText(srcFile).Trim(trimChars);
       var relSrcPath = srcDir.MakeRelativeUri(new Uri(srcFile)).ToString();
       var outFile = Combine(outDir, GetDirectoryName(relSrcPath), GetFileNameWithoutExtension(relSrcPath) + outExt);
       Directory.CreateDirectory(GetDirectoryName(outFile));
