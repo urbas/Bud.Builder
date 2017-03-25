@@ -103,7 +103,7 @@ namespace Bud {
       SourceExt = sourceExt;
       OutputDir = outputDir;
       OutputExt = outputExt;
-      Salt = salt;
+      Salt = salt ?? string.Empty;
       Dependencies = dependencies?.ToImmutableArray() ?? ImmutableArray<IBuildTask>.Empty;
     }
 
