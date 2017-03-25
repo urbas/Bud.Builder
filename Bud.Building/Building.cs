@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using static System.IO.Directory;
 using static System.IO.Path;
@@ -48,7 +47,6 @@ namespace Bud {
     ///   Executes the build described by the build tasks.
     /// </summary>
     /// <param name="task">the task that describes the build.</param>
-    /// <param name="stdout">the writer to which to print all the build output.</param>
     /// <param name="sourceDir">
     ///   the directory with sources. By default the current working directory is used.
     /// </param>
@@ -61,17 +59,15 @@ namespace Bud {
     ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="sourceDir"/> is used.
     /// </param>
     public static void RunBuild(IBuildTask task,
-                                TextWriter stdout = null,
                                 string sourceDir = null,
                                 string outputDir = null,
                                 string metaDir = null)
-      => RunBuild(new[] {task}, stdout, sourceDir, outputDir, metaDir);
+      => RunBuild(new[] {task}, sourceDir, outputDir, metaDir);
 
     /// <summary>
     ///   Executes the build described by the build tasks.
     /// </summary>
     /// <param name="tasks">the tasks that describe the build.</param>
-    /// <param name="stdout">the writer to which to print all the build output.</param>
     /// <param name="sourceDir">
     ///   the directory with sources. By default the current working directory is used.
     /// </param>
@@ -84,7 +80,6 @@ namespace Bud {
     ///   sudirectory <see cref="MetaDirName"/> of the <paramref name="sourceDir"/> is used.
     /// </param>
     public static void RunBuild(IEnumerable<IBuildTask> tasks,
-                                TextWriter stdout = null,
                                 string sourceDir = null,
                                 string outputDir = null,
                                 string metaDir = null) {
