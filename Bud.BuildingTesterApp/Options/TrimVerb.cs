@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CommandLine;
+using static System.IO.Path;
 
 namespace Bud.BuildingTesterApp.Options {
   [Verb("trim", HelpText = "Removes whitespace from the beginning and the end of given files.")]
   public class TrimVerb {
-    [Option("rootDir", HelpText = "This directory will be taken as the base directory in which source files are " +
-                                  "located. Relative paths and folder structure is calculated relative to this " +
-                                  "directory.", Required = true)]
+    [Option("srcDir", HelpText = "This directory will be taken as the base directory in which source files are " +
+                                 "located. Relative paths and folder structure is calculated relative to this " +
+                                 "directory.", Required = true)]
     public string RootDir { get; set; }
 
     [Option("outDir", HelpText = "Output files will be placed into this directory. The folder structure of the " +
@@ -27,19 +28,20 @@ namespace Bud.BuildingTesterApp.Options {
       return 0;
     }
 
-    public static void TrimTxtFiles(string rootDir, IEnumerable<string> sourceFiles, string outDir, string outputExt) {
-      var rootDirUri = new Uri($"{rootDir}/");
-      foreach (var sourceFile in sourceFiles) {
-        var content = File.ReadAllText(sourceFile).Trim();
-        var relativeSrcPath = rootDirUri.MakeRelativeUri(new Uri(sourceFile)).ToString();
-        var outputFile = Path.Combine(outDir,
-                                      Path.GetDirectoryName(relativeSrcPath),
-                                      Path.GetFileNameWithoutExtension(relativeSrcPath) + outputExt);
-        Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
-        Console.WriteLine($"Producing file: {outputFile}");
-
-        File.WriteAllText(outputFile, content);
+    public static void TrimTxtFiles(string srcDir, IEnumerable<string> srcFiles, string outDir, string outExt) {
+      var srcDirUri = new Uri($"{srcDir}/");
+      foreach (var srcFile in srcFiles) {
+        TrimTxtFile(srcFile, outDir, srcDirUri, outExt);
       }
+    }
+
+    private static void TrimTxtFile(string srcFile, string outDir, Uri srcDir, string outExt) {
+      var content = File.ReadAllText(srcFile).Trim();
+      var relSrcPath = srcDir.MakeRelativeUri(new Uri(srcFile)).ToString();
+      var outFile = Combine(outDir, GetDirectoryName(relSrcPath), GetFileNameWithoutExtension(relSrcPath) + outExt);
+      Directory.CreateDirectory(GetDirectoryName(outFile));
+      Console.WriteLine($"Trimmed file '{srcFile}' to file '{outFile}'.");
+      File.WriteAllText(outFile, content);
     }
   }
 }

@@ -15,7 +15,7 @@ namespace Bud {
         dir.CreateFile("  foo  ", "src", "foo.txt");
         dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
 
-        var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} " +
+        var task = Build(command: ctx => ctx.Command(TesterApp, $"--srcDir {Arg(ctx.SourceDir)} " +
                                                                 $"--outDir {Arg(ctx.OutputDir)} " +
                                                                 $"--outExt .txt.nospace " +
                                                                 $"{Args(ctx.Sources)}"),
@@ -199,7 +199,7 @@ namespace Bud {
         dir.CreateFile("  foo  ", "src", "foo.txt");
         dir.CreateFile("  bar  ", "src", "subdir", "bar.txt");
 
-        var task = Build(command: ctx => ctx.Command(TesterApp, $"--rootDir {Arg(ctx.SourceDir)} " +
+        var task = Build(command: ctx => ctx.Command(TesterApp, $"--srcDir {Arg(ctx.SourceDir)} " +
                                                                 $"--outDir {Arg(ctx.OutputDir)} " +
                                                                 $"--outExt .txt.nospace " +
                                                                 $"{Args(ctx.Sources)}"),
