@@ -25,14 +25,12 @@ namespace Bud {
     /// <summary>
     ///   This method does the bulk of the task's work. It produces the task's output.
     /// </summary>
-    /// <param name="context">
-    ///   this object provides the source directory (where this task can find its source files) and the output directory
-    ///   (where this task should place its output files).
-    /// </param>
+    /// <param name="sourceDir">the source directory.</param>
+    /// <param name="outputDir">the directory where this task should place all its output files.</param>
     /// <param name="dependencyResults">
     ///   this array contains the outcomes of tasks on which this task depends.
     /// </param>
-    void Execute(BuildTaskContext context, ImmutableArray<BuildTaskResult> dependencyResults);
+    void Execute(string sourceDir, string outputDir, ImmutableArray<BuildTaskResult> dependencyResults);
 
     /// <summary>
     ///   Other tasks on which this task directly depends.
@@ -44,14 +42,12 @@ namespace Bud {
     /// </summary>
     string Name { get; }
 
-    /// <param name="ctx">this object contains the source directory of the current build, the output directory where
-    ///   this task should place its files, and other information about the current build.</param>
-    /// <param name="dependencyResults">the results of dependent build tasks.</param>
+    /// <param name="sourceDir">the source directory.</param>
     /// <returns>
     ///   A hex string or a URL- and filename-safe Base64 string (i.e.: base64url). This signature should be a
     ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
     ///   environment variables, the task's algorithm, and other factors that affect the task's output.
     /// </returns>
-    string Signature(string ctx, ImmutableArray<BuildTaskResult> dependencyResults);
+    string Signature(string sourceDir, ImmutableArray<BuildTaskResult> dependencyResults);
   }
 }

@@ -199,7 +199,7 @@ namespace Bud {
     private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir,
                                          string sourceDir, ImmutableArray<BuildTaskResult> dependenciesResults) {
       CreateDirectory(partialTaskOutputDir);
-      buildTask.Execute(new BuildTaskContext(partialTaskOutputDir, sourceDir), dependenciesResults);
+      buildTask.Execute(sourceDir, partialTaskOutputDir, dependenciesResults);
       Move(partialTaskOutputDir, taskOutputDir);
     }
 

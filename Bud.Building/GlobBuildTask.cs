@@ -55,7 +55,7 @@ namespace Bud {
 
     /// <summary>
     /// The directory in which to search for sources. If this directory is relative, then it will be resolved against
-    /// the the base directory of the build (see <see cref="BuildTaskContext.SourceDir"/>).
+    /// the the base source directory of the build.
     /// </summary>
     public string SourceDir { get; }
 
@@ -130,9 +130,9 @@ namespace Bud {
                            .Finish()
                            .HexSignature;
 
-    public void Execute(BuildTaskContext ctx, ImmutableArray<BuildTaskResult> dependencyResults) {
-      var absoluteSourceDir = AbsoluteSourceDir(ctx.SourceDir);
-      var absoluteOutputDir = AbsoluteOutputDir(ctx.OutputDir);
+    public void Execute(string sourceDir, string outputDir, ImmutableArray<BuildTaskResult> dependencyResults) {
+      var absoluteSourceDir = AbsoluteSourceDir(sourceDir);
+      var absoluteOutputDir = AbsoluteOutputDir(outputDir);
       var sources = FindFilesByExt(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
       var globBuildContext = new GlobBuildContext(sources, absoluteSourceDir, SourceExt, absoluteOutputDir, OutputExt);
       Command(globBuildContext);

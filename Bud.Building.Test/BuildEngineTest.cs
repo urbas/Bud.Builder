@@ -38,7 +38,10 @@ namespace Bud {
         BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
         BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
+        fooTaskMock.Verify(f => f.Execute(It.IsAny<string>(),
+                                          It.IsAny<string>(),
+                                          It.IsAny<ImmutableArray<BuildTaskResult>>()),
+                           Times.Once);
       }
     }
 
@@ -69,7 +72,10 @@ namespace Bud {
         var barTaskMock2 = MockBuildTasks.GenerateFile("createBar", "bar", "9001", changedFooTaskMock.Object);
         BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock2.Object);
 
-        barTaskMock2.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
+        barTaskMock2.Verify(f => f.Execute(It.IsAny<string>(),
+                                           It.IsAny<string>(),
+                                           It.IsAny<ImmutableArray<BuildTaskResult>>()),
+                            Times.Once);
       }
     }
 
@@ -82,9 +88,15 @@ namespace Bud {
 
         BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<BuildTaskContext>(), It.IsAny<ImmutableArray<BuildTaskResult>>()), Times.Once);
+        VerifyExecutedOnce(fooTaskMock);
       }
     }
+
+    private static void VerifyExecutedOnce(Mock<IBuildTask> fooTaskMock)
+      => fooTaskMock.Verify(f => f.Execute(It.IsAny<string>(),
+                                           It.IsAny<string>(),
+                                           It.IsAny<ImmutableArray<BuildTaskResult>>()),
+                            Times.Once);
 
     [Test]
     public void TestExecute_executes_tasks_in_parallel() {
@@ -139,18 +151,20 @@ namespace Bud {
     [Test]
     public void TestExecute_cleans_unfinished_directories_before_starting_the_build() {
       using (var tmpDir = new TmpDir()) {
-        var partialTask = MockBuildTasks.NoOp("task1").WithExecuteAction((ctx, deps) => {
-          File.WriteAllText(Path.Combine(ctx.OutputDir, "foo"), "42");
-          throw new Exception("Test exception");
-        });
+        var partialTask = MockBuildTasks.NoOp("task1")
+                                        .WithExecuteAction((sourceDir, outputDir, deps) => {
+                                          File.WriteAllText(Path.Combine(outputDir, "foo"), "42");
+                                          throw new Exception("Test exception");
+                                        });
         try {
           BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), partialTask.Object);
         } catch (Exception) {
           // ignored
         }
-        var fullTask = MockBuildTasks.NoOp("task1").WithExecuteAction((ctx, deps) => {
-          File.WriteAllText(Path.Combine(ctx.OutputDir, "bar"), "9001");
-        });
+        var fullTask = MockBuildTasks.NoOp("task1")
+                                     .WithExecuteAction((sourceDir, outputDir, deps) => {
+                                       File.WriteAllText(Path.Combine(outputDir, "bar"), "9001");
+                                     });
         BuildEngine.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fullTask.Object);
 
         FileAssert.AreEqual(tmpDir.CreateFile("9001"), tmpDir.CreatePath("out", "bar"));

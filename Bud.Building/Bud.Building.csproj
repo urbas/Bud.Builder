@@ -51,7 +51,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildTaskContext.cs" />
     <Compile Include="BuildTaskResult.cs" />
     <Compile Include="GlobBuildCommand.cs" />
     <Compile Include="GlobBuildContext.cs" />
