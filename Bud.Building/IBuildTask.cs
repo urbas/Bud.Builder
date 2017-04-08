@@ -43,6 +43,7 @@ namespace Bud {
     string Name { get; }
 
     /// <param name="sourceDir">the source directory.</param>
+    /// <param name="dependencyResults">this array contains the outcomes of tasks on which this task depends.</param>
     /// <returns>
     ///   A hex string or a URL- and filename-safe Base64 string (i.e.: base64url). This signature should be a
     ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
