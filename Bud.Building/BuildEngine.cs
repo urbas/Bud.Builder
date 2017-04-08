@@ -113,7 +113,7 @@ namespace Bud {
       CreateMetaOutputDirs();
       ExecuteBuildTasks(buildTasks);
       AssertNoClashingFiles();
-      CopyOutputToOutputDir();
+      CopyToOutputDir();
     }
 
     private void CreateMetaOutputDirs() {
@@ -149,7 +149,7 @@ namespace Bud {
       }
     }
 
-    private void CopyOutputToOutputDir() {
+    private void CopyToOutputDir() {
       if (Exists(OutputDir)) {
         Delete(OutputDir, true);
       }
