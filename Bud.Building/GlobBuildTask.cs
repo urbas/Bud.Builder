@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using static Bud.FileUtils;
@@ -51,7 +52,7 @@ namespace Bud {
     /// <summary>
     ///   This delegate performs the actual build.
     /// </summary>
-    public GlobBuildCommand Command { get; }
+    public Action<GlobBuildContext> Command { get; }
 
     /// <summary>
     /// The directory in which to search for sources. If this directory is relative, then it will be resolved against
@@ -91,7 +92,7 @@ namespace Bud {
     /// <summary>
     ///    Creates a new build task.
     /// </summary>
-    public GlobBuildTask(GlobBuildCommand command,
+    public GlobBuildTask(Action<GlobBuildContext> command,
                          string sourceDir,
                          string sourceExt,
                          string outputDir,

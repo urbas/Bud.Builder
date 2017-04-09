@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildTaskResult.cs" />
-    <Compile Include="GlobBuildCommand.cs" />
     <Compile Include="GlobBuildContext.cs" />
     <Compile Include="GlobBuildTask.cs" />
     <Compile Include="Building.cs" />

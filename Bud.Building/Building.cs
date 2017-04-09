@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using static System.IO.Directory;
 using static System.IO.Path;
@@ -34,7 +35,7 @@ namespace Bud {
     /// <param name="signature">see <see cref="GlobBuildTask.Salt"/></param>
     /// <param name="dependsOn">other build tasks that this task depends on.</param>
     /// <returns>a build task that can be executed or can be used as a dependency of another task.</returns>
-    public static GlobBuildTask Build(GlobBuildCommand command,
+    public static GlobBuildTask Build(Action<GlobBuildContext> command,
                                       string sourceExt,
                                       string outputExt,
                                       string sourceDir = "",
