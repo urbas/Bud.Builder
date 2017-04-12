@@ -13,7 +13,8 @@ namespace Bud {
     ///   Finds all files in the directory <paramref name="dir"/> that have the extension <paramref name="ext"/>.
     /// </summary>
     /// <returns>an array of found files.</returns>
-    public static ImmutableArray<string> FindFilesByExt(string dir, string ext = "",
+    public static ImmutableArray<string> FindFilesByExt(string dir,
+                                                        string ext = "",
                                                         SearchOption searchOption = SearchOption.AllDirectories)
       => FindFiles(dir, $"*{ext}", searchOption);
 
@@ -24,7 +25,8 @@ namespace Bud {
     /// <param name="searchPattern">the glob pattern of files to find.</param>
     /// <param name="searchOption">indicates whether to search the directory recursively or not.</param>
     /// <returns>a list of relative file paths.</returns>
-    public static IEnumerable<string> FindFilesRelative(string dir, string searchPattern = "*",
+    public static IEnumerable<string> FindFilesRelative(string dir,
+                                                        string searchPattern = "*",
                                                         SearchOption searchOption = SearchOption.AllDirectories) {
       var dirUri = new Uri($"{dir}/");
       return FindFiles(dir, searchPattern, searchOption)
@@ -40,7 +42,8 @@ namespace Bud {
     /// <param name="searchPattern">the glob pattern of files to find.</param>
     /// <param name="searchOption">indicates whether to search the directory recursively or not.</param>
     /// <returns>an array of found files.</returns>
-    public static ImmutableArray<string> FindFiles(string dir, string searchPattern = "*",
+    public static ImmutableArray<string> FindFiles(string dir,
+                                                   string searchPattern = "*",
                                                    SearchOption searchOption = SearchOption.AllDirectories) {
       if (Directory.Exists(dir)) {
         return Directory.EnumerateFiles(dir, searchPattern, SearchOption.AllDirectories)
