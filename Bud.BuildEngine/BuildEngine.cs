@@ -181,29 +181,28 @@ namespace Bud {
 
     private void GraphNodeAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.
-      var dependenciesResults = buildTask.Dependencies.Select(GetBuildTaskResult).ToImmutableArray();
+      var dependenciesResults = GetDependenciesResults(buildTask);
       var taskSignature = buildTask.Signature(SourceDir, dependenciesResults);
       AssertUniqueSignature(buildTask, taskSignature);
-
-      var taskOutputDir = Combine(DoneOutputsDir, taskSignature);
-      if (!Exists(taskOutputDir)) {
-        var partialTaskOutputDir = Combine(PartialOutputsDir, taskSignature);
-        ExecuteBuildTask(buildTask, partialTaskOutputDir, taskOutputDir, SourceDir,
-                         dependenciesResults);
-      }
-
-      var buildTaskResult = new BuildTaskResult(taskSignature, taskOutputDir, dependenciesResults);
+      var buildTaskResult = ExecuteBuildTask(buildTask, taskSignature, dependenciesResults);
       buildTasksToResults.TryAdd(buildTask, buildTaskResult);
     }
 
-    private BuildTaskResult GetBuildTaskResult(IBuildTask task) => buildTasksToResults[task];
-
-    private static void ExecuteBuildTask(IBuildTask buildTask, string partialTaskOutputDir, string taskOutputDir,
-                                         string sourceDir, ImmutableArray<BuildTaskResult> dependenciesResults) {
-      CreateDirectory(partialTaskOutputDir);
-      buildTask.Execute(sourceDir, partialTaskOutputDir, dependenciesResults);
-      Move(partialTaskOutputDir, taskOutputDir);
+    private BuildTaskResult ExecuteBuildTask(IBuildTask buildTask,
+                                             string taskSignature,
+                                             ImmutableArray<BuildTaskResult> dependenciesResults) {
+      var taskOutputDir = Combine(DoneOutputsDir, taskSignature);
+      if (!Exists(taskOutputDir)) {
+        var partialTaskOutputDir = Combine(PartialOutputsDir, taskSignature);
+        CreateDirectory(partialTaskOutputDir);
+        buildTask.Execute(SourceDir, partialTaskOutputDir, dependenciesResults);
+        Move(partialTaskOutputDir, taskOutputDir);
+      }
+      return new BuildTaskResult(taskSignature, taskOutputDir, dependenciesResults);
     }
+
+    private ImmutableArray<BuildTaskResult> GetDependenciesResults(IBuildTask buildTask)
+      => buildTask.Dependencies.Select(task => buildTasksToResults[task]).ToImmutableArray();
 
     private void AssertUniqueSignature(IBuildTask buildTask, string taskSignature) {
       var storedTask = signatureToBuildTask.GetOrAdd(taskSignature, buildTask);
