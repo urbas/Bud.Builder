@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Bud</RootNamespace>
     <AssemblyName>Bud.Building</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,19 +52,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildTaskResult.cs" />
     <Compile Include="GlobBuildContext.cs" />
     <Compile Include="GlobBuildTask.cs" />
     <Compile Include="Building.cs" />
-    <Compile Include="FileUtils.cs" />
-    <Compile Include="HexUtils.cs" />
-    <Compile Include="BuildEngine.cs" />
-    <Compile Include="IBuildTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sha256Signer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bud.BuildEngine\Bud.BuildEngine.csproj">
+      <Project>{5fdd6e0d-c1b4-48e8-96d1-cbb11d0bc774}</Project>
+      <Name>Bud.BuildEngine</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
