@@ -9,15 +9,15 @@ using static Bud.FileUtils;
 
 namespace Bud {
   /// <summary>
-  ///   This build engine tries to isolate tasks by creating a signed output directory for each task.
+  ///   This build engine tries to isolate tasks by creating a temporary output directory for each task.
   /// </summary>
   /// <remarks>
-  ///   Here's how this engine processes a build task:
+  ///   Here's how this engine works in more detail:
   ///
   ///   <ul>
   ///     <li>Execute all direct dependencies of task A.</li>
   ///
-  ///     <li>Retrieve the signature of task A.</li>
+  ///     <li>Calculate the signature of task A.</li>
   ///
   ///     <li>Check that no other task has the same signature.</li>
   ///
@@ -27,14 +27,16 @@ namespace Bud {
   ///
   ///     <li>Create a temporary directory and ask the task to place its output into this directory.</li>
   ///
-  ///     <li>Abort the build if the task threw an exception. If not, rename the temporary directory to the
-  ///     signature of the task.</li>
+  ///     <li>If the task finishes successfully, move the temporary output directory to the cache of finished outputs.</li>
   ///
-  ///     <li>Store the output directory in a list.</li>
+  ///     <li>Abort the build if the task threw an exception.</li>
+  ///
+  ///     <li>Check that no two tasks produced the same output files.</li>
+  ///
+  ///     <li>Copy the contents of all output directories into the final output directory.</li>
   ///   </ul>
   ///
-  ///   The end result is a list of all output directories. The engine now copies the contents of all output directories
-  ///   into the output directory.
+  ///   All output files will end up in <see cref="BuildEngine.OutputDir"/>.
   /// </remarks>
   public class BuildEngine {
     /// <summary>
