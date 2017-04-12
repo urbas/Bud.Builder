@@ -48,7 +48,7 @@ namespace Bud {
     public string OutputDir { get; }
 
     /// <summary>
-    ///   The directory where this engine will place its build meta files, cached etc.
+    ///   The directory where this engine will place its build meta files, caches, and other internal files.
     /// </summary>
     public string MetaDir { get; }
 
