@@ -140,9 +140,7 @@ namespace Bud {
         var relativeOutputFiles = FindFilesRelative(Combine(DoneOutputsDir, signatureAndBuildTask.Key));
 
         foreach (var relativeOutputFile in relativeOutputFiles) {
-          IBuildTask otherTask;
-
-          if (relativeOutputFileToBuildTask.TryGetValue(relativeOutputFile, out otherTask)) {
+          if (relativeOutputFileToBuildTask.TryGetValue(relativeOutputFile, out var otherTask)) {
             throw new Exception($"Tasks '{otherTask.Name}' and '{signatureAndBuildTask.Value.Name}' are clashing. " +
                                 $"They produced the same file '{relativeOutputFile}'.");
           }
@@ -161,8 +159,7 @@ namespace Bud {
     }
 
     private TaskGraph GetOrCreateTaskGraph(IBuildTask buildTask) {
-      TaskGraph taskGraph;
-      if (buildTaskToTaskGraph.TryGetValue(buildTask, out taskGraph)) {
+      if (buildTaskToTaskGraph.TryGetValue(buildTask, out var taskGraph)) {
         return taskGraph;
       }
       var createdTaskGraph = CreateTaskGraph(buildTask);
