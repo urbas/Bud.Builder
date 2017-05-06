@@ -137,7 +137,11 @@ namespace Bud {
 
     private void ExecuteBuildTasks(IEnumerable<IBuildTask> buildTasks) {
       try {
-        new TaskGraph(buildTasks.Select(GetOrCreateTaskGraph)).Run();
+        TaskGraph.ToTaskGraph(buildTasks,
+                              task => task.Name,
+                              task => task.Dependencies,
+                              task => () => GraphNodeAction(task))
+                 .Run();
       } catch (AggregateException aggregateException) {
         throw aggregateException.InnerExceptions[0];
       }
@@ -168,25 +172,8 @@ namespace Bud {
       }
     }
 
-    private TaskGraph GetOrCreateTaskGraph(IBuildTask buildTask) {
-      TaskGraph taskGraph;
-      if (buildTaskToTaskGraph.TryGetValue(buildTask, out taskGraph)) {
-        return taskGraph;
-      }
-      AssertNoNameClashes(buildTask);
-      var createdTaskGraph = CreateTaskGraph(buildTask);
-      buildTaskToTaskGraph.Add(buildTask, createdTaskGraph);
-      return createdTaskGraph;
-    }
-
     private IEnumerable<string> TaskOutputDirs
       => signatureToBuildTask.Keys.Select(sig => Combine(DoneOutputsDir, sig));
-
-    private TaskGraph CreateTaskGraph(IBuildTask buildTask)
-      => ToTaskGraph(buildTask, buildTask.Dependencies.Select(GetOrCreateTaskGraph).ToImmutableArray());
-
-    private TaskGraph ToTaskGraph(IBuildTask buildTask, ImmutableArray<TaskGraph> dependenciesTaskGraphs)
-      => new TaskGraph(() => GraphNodeAction(buildTask), dependenciesTaskGraphs);
 
     private void GraphNodeAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.

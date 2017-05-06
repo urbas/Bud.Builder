@@ -34,26 +34,37 @@ namespace Bud {
       => BareBuildTask(taskName, dependencies)
         .WithStandardSignature("TaskName:", taskName, "TaskType:", nameof(NoOp));
 
-    public static Mock<IBuildTask> WithExecuteAction(this Mock<IBuildTask> buildTaskMock,
-                                                     Action<string, string, ImmutableArray<BuildTaskResult>> action) {
-      buildTaskMock.Setup(f => f.Execute(It.IsAny<string>(),
-                                         It.IsAny<string>(),
-                                         It.IsAny<ImmutableArray<BuildTaskResult>>()))
-                   .Callback(action);
-      return buildTaskMock;
+    public static Mock<IBuildTask> WithDependencies(this Mock<IBuildTask> taskMock,
+                                                    IEnumerable<IBuildTask> dependencies) {
+      taskMock.SetupGet(f => f.Dependencies).Returns(dependencies.ToImmutableArray);
+      return taskMock;
     }
 
-    public static Mock<IBuildTask> WithStandardSignature(this Mock<IBuildTask> buildTaskMock, params string[] salts)
-      => WithSignature(buildTaskMock, (srcDir, deps) => CalculateSignature(deps, salts));
+    public static Mock<IBuildTask> WithName(this Mock<IBuildTask> taskMock, string name) {
+      taskMock.SetupGet(f => f.Name).Returns(name);
+      return taskMock;
+    }
 
-    public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> buildTaskMock, string signature)
-      => buildTaskMock.WithSignature((srcDir, deps) => signature);
+    public static Mock<IBuildTask> WithExecuteAction(this Mock<IBuildTask> taskMock,
+                                                     Action<string, string, ImmutableArray<BuildTaskResult>> action) {
+      taskMock.Setup(f => f.Execute(It.IsAny<string>(),
+                                    It.IsAny<string>(),
+                                    It.IsAny<ImmutableArray<BuildTaskResult>>()))
+              .Callback(action);
+      return taskMock;
+    }
 
-    public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> buildTaskMock,
+    public static Mock<IBuildTask> WithStandardSignature(this Mock<IBuildTask> taskMock, params string[] salts)
+      => WithSignature(taskMock, (srcDir, deps) => CalculateSignature(deps, salts));
+
+    public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> taskMock, string signature)
+      => taskMock.WithSignature((srcDir, deps) => signature);
+
+    public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> taskMock,
                                                  Func<string, ImmutableArray<BuildTaskResult>, string> signature) {
-      buildTaskMock.Setup(f => f.Signature(It.IsAny<string>(), It.IsAny<ImmutableArray<BuildTaskResult>>()))
-                   .Returns(signature);
-      return buildTaskMock;
+      taskMock.Setup(f => f.Signature(It.IsAny<string>(), It.IsAny<ImmutableArray<BuildTaskResult>>()))
+              .Returns(signature);
+      return taskMock;
     }
 
     private static string CalculateSignature(ImmutableArray<BuildTaskResult> dependenciesResults,
@@ -75,11 +86,7 @@ namespace Bud {
       return signer.Finish().HexSignature;
     }
 
-    private static Mock<IBuildTask> BareBuildTask(string taskName, IEnumerable<IBuildTask> dependencies) {
-      var fileGeneratorMock = new Mock<IBuildTask>();
-      fileGeneratorMock.SetupGet(f => f.Name).Returns(taskName);
-      fileGeneratorMock.SetupGet(f => f.Dependencies).Returns(dependencies.ToImmutableArray);
-      return fileGeneratorMock;
-    }
+    private static Mock<IBuildTask> BareBuildTask(string taskName, IEnumerable<IBuildTask> dependencies)
+      => new Mock<IBuildTask>().WithName(taskName).WithDependencies(dependencies);
   }
 }

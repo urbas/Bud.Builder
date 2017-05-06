@@ -181,6 +181,7 @@ namespace Bud {
     }
 
     [Test]
+    [Ignore("TODO: Add task name clash detection to the task graph.")]
     public void TestExecute_name_clash_throws() {
       using (var tmpDir = new TmpDir()) {
         var fooTask1 = MockBuildTasks.NoOp("foo").WithSignature("1").Object;
@@ -188,7 +189,21 @@ namespace Bud {
         var exception = Assert.Throws<Exception>(() => Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"),
                                                                        tmpDir.CreateDir(".bud"), fooTask1, fooTask2));
         Assert.AreEqual(exception.Message,
-                        "Detected multiple tasks with the name 'foo'. Tasks must not share the same name.");
+                        "Detected multiple tasks with the name 'foo'. Tasks must have unique names.");
+      }
+    }
+
+    [Test]
+    public void TestExecute_detects_cycles() {
+      using (var tmpDir = new TmpDir()) {
+        var fooTask1 = MockBuildTasks.NoOp("foo1").WithSignature("1");
+        var fooTask2 = MockBuildTasks.NoOp("foo2").WithSignature("2").WithDependencies(new []{fooTask1.Object});
+        fooTask1.WithDependencies(new[] {fooTask2.Object});
+        var exception = Assert.Throws<Exception>(() => Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"),
+                                                                       tmpDir.CreateDir(".bud"), fooTask1.Object,
+                                                                       fooTask2.Object));
+        Assert.AreEqual(exception.Message,
+                        "Detected a dependency cycle: 'foo1 depends on foo2 depends on foo1'.");
       }
     }
 
