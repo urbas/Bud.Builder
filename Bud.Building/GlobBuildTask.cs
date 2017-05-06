@@ -89,6 +89,12 @@ namespace Bud {
     /// </remarks>
     public string Salt { get; }
 
+    /// <inheritdoc />
+    public ImmutableArray<IBuildTask> Dependencies { get; }
+
+    /// <inheritdoc />
+    public string Name => ToString();
+
     /// <summary>
     ///    Creates a new build task.
     /// </summary>
@@ -108,12 +114,23 @@ namespace Bud {
       Dependencies = dependencies?.ToImmutableArray() ?? ImmutableArray<IBuildTask>.Empty;
     }
 
+    /// <returns>a string of the form <c>"src/**/*.ts -> out/bin/**/*.js"</c></returns>
+    public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
+
+    public string Signature(string sourceDir, ImmutableArray<BuildTaskResult> dependencyResults)
+      => CalculateTaskSignature(FindSources(AbsoluteSourceDir(sourceDir)));
+
+    public void Execute(string sourceDir, string outputDir, ImmutableArray<BuildTaskResult> dependencyResults) {
+      var absoluteSourceDir = AbsoluteSourceDir(sourceDir);
+      var absoluteOutputDir = AbsoluteOutputDir(outputDir);
+      var sources = FindSources(absoluteSourceDir);
+      var globBuildContext = new GlobBuildContext(sources, absoluteSourceDir, SourceExt, absoluteOutputDir, OutputExt);
+      Command(globBuildContext);
+    }
+
     private string AbsoluteOutputDir(string outputDir) => Path.Combine(outputDir, OutputDir);
 
     private string AbsoluteSourceDir(string sourceDir) => Path.Combine(sourceDir, SourceDir);
-
-    /// <returns>a string of the form <c>"src/**/*.ts -> out/bin/**/*.js"</c></returns>
-    public override string ToString() => $"{SourceDir}/**/*{SourceExt} -> {OutputDir}/**/*{OutputExt}";
 
     private string CalculateTaskSignature(IEnumerable<string> sources)
       => new Sha256Signer().Digest("Sources")
@@ -131,20 +148,7 @@ namespace Bud {
                            .Finish()
                            .HexSignature;
 
-    public void Execute(string sourceDir, string outputDir, ImmutableArray<BuildTaskResult> dependencyResults) {
-      var absoluteSourceDir = AbsoluteSourceDir(sourceDir);
-      var absoluteOutputDir = AbsoluteOutputDir(outputDir);
-      var sources = FindFilesByExt(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
-      var globBuildContext = new GlobBuildContext(sources, absoluteSourceDir, SourceExt, absoluteOutputDir, OutputExt);
-      Command(globBuildContext);
-    }
-
-    public ImmutableArray<IBuildTask> Dependencies { get; }
-    public string Name => ToString();
-
-    public string Signature(string sourceDir, ImmutableArray<BuildTaskResult> dependencyResults) {
-      var sources = FindFilesByExt(AbsoluteSourceDir(sourceDir), SourceExt).ToImmutableSortedSet();
-      return CalculateTaskSignature(sources);
-    }
+    private ImmutableSortedSet<string> FindSources(string absoluteSourceDir)
+      => FindFilesByExt(absoluteSourceDir, SourceExt).ToImmutableSortedSet();
   }
 }
