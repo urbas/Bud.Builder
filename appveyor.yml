@@ -6,6 +6,12 @@ build:
   project: Bud.Building.sln
   verbosity: minimal
 deploy: off
+artifacts:
+  - path: Bud.BuildEngine/bin/Debug/Bud.BuildEngine.dll
+    name: Bud.BuildEngine.dll
+  - path: Bud.BuildEngine/bin/Debug/Bud.BuildEngine.xml
+    name: Bud.BuildEngine.xml
+  - path: 'Bud.BuildEngine/*.nupkg'
 assembly_info:
   patch: true
   file: Bud.BuildEngine/Properties/AssemblyInfo.cs
