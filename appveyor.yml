@@ -5,7 +5,8 @@ before_build:
 build:
   project: Bud.Building.sln
   verbosity: minimal
-deploy: off
+before_package:
+  - ps: cd Bud.BuildEngine; nuget pack Bud.BuildEngine.nuspec -Version {version}
 artifacts:
   - path: Bud.BuildEngine/bin/Debug/Bud.BuildEngine.dll
     name: Bud.BuildEngine.dll
@@ -18,3 +19,4 @@ assembly_info:
   assembly_version: '{version}'
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
+deploy: off
