@@ -66,9 +66,17 @@ namespace Bud {
     public string PartialOutputsDir { get; }
 
     /// <summary>
-    ///   Task graphs are built up in a single thread. This is why this can be a normal dictionary.
+    ///   This dictionary is used during the construction of the build graph. Build graphs are built up in a single
+    ///   thread. This is why this can be a normal dictionary.
     /// </summary>
     private readonly Dictionary<IBuildTask, TaskGraph> buildTaskToTaskGraph = new Dictionary<IBuildTask, TaskGraph>();
+
+    /// <summary>
+    ///   A dictionary where the keys are task names and values are the tasks themselves. This dictionary is used
+    ///   during the construction of the build graph. Build graphs are built up in a single thread. This is why this
+    ///   can be a normal dictionary.
+    /// </summary>
+    private readonly HashSet<string> buildTaskNames = new HashSet<string>();
 
     private readonly ConcurrentDictionary<IBuildTask, BuildTaskResult> buildTasksToResults
       = new ConcurrentDictionary<IBuildTask, BuildTaskResult>(new Dictionary<IBuildTask, BuildTaskResult>());
@@ -165,6 +173,7 @@ namespace Bud {
       if (buildTaskToTaskGraph.TryGetValue(buildTask, out taskGraph)) {
         return taskGraph;
       }
+      AssertNoNameClashes(buildTask);
       var createdTaskGraph = CreateTaskGraph(buildTask);
       buildTaskToTaskGraph.Add(buildTask, createdTaskGraph);
       return createdTaskGraph;
@@ -210,6 +219,14 @@ namespace Bud {
         throw new Exception($"Tasks '{storedTask.Name}' and '{buildTask.Name}' are clashing. " +
                             $"They have the same signature '{taskSignature}'.");
       }
+    }
+
+    private void AssertNoNameClashes(IBuildTask buildTask) {
+      if (buildTaskNames.Remove(buildTask.Name)) {
+        throw new Exception($"Detected multiple tasks with the name '{buildTask.Name}'. Tasks must not share the " +
+                            $"same name.");
+      }
+      buildTaskNames.Add(buildTask.Name);
     }
   }
 }

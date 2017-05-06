@@ -180,6 +180,18 @@ namespace Bud {
       }
     }
 
+    [Test]
+    public void TestExecute_name_clash_throws() {
+      using (var tmpDir = new TmpDir()) {
+        var fooTask1 = MockBuildTasks.NoOp("foo").WithSignature("1").Object;
+        var fooTask2 = MockBuildTasks.NoOp("foo").WithSignature("2").Object;
+        var exception = Assert.Throws<Exception>(() => Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"),
+                                                                       tmpDir.CreateDir(".bud"), fooTask1, fooTask2));
+        Assert.AreEqual(exception.Message,
+                        "Detected multiple tasks with the name 'foo'. Tasks must not share the same name.");
+      }
+    }
+
     private static void VerifyExecutedOnce(Mock<IBuildTask> fooTaskMock)
       => fooTaskMock.Verify(f => f.Execute(It.IsAny<string>(),
                                            It.IsAny<string>(),

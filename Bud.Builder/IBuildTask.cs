@@ -38,7 +38,7 @@ namespace Bud {
     ImmutableArray<IBuildTask> Dependencies { get; }
 
     /// <summary>
-    ///   A human-readable designation of the task.
+    ///   A human-readable name of the task. It must be unique in the build graph.
     /// </summary>
     string Name { get; }
 
