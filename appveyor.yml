@@ -6,7 +6,7 @@ build:
   project: Bud.Building.sln
   verbosity: minimal
 before_package:
-  - ps: 'cd Bud.BuildEngine; nuget pack -Version $APPVEYOR_BUILD_VERSION Bud.BuildEngine.nuspec'
+  - ps: 'cd Bud.BuildEngine; nuget pack Bud.BuildEngine.csproj'
 artifacts:
   - path: Bud.BuildEngine/bin/Debug/Bud.BuildEngine.dll
     name: Bud.BuildEngine.dll
