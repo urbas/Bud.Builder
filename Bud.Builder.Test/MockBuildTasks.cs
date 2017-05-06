@@ -44,7 +44,7 @@ namespace Bud {
     }
 
     public static Mock<IBuildTask> WithStandardSignature(this Mock<IBuildTask> buildTaskMock, params string[] salts)
-      => WithSignature(buildTaskMock, (srcDir, deps) => GetTaskSigner(deps, salts).Finish().HexSignature);
+      => WithSignature(buildTaskMock, (srcDir, deps) => CalculateSignature(deps, salts));
 
     public static Mock<IBuildTask> WithSignature(this Mock<IBuildTask> buildTaskMock, string signature)
       => buildTaskMock.WithSignature((srcDir, deps) => signature);
@@ -56,8 +56,8 @@ namespace Bud {
       return buildTaskMock;
     }
 
-    private static Sha256Signer GetTaskSigner(ImmutableArray<BuildTaskResult> dependenciesResults,
-                                              params string[] salts) {
+    private static string CalculateSignature(ImmutableArray<BuildTaskResult> dependenciesResults,
+                                             params string[] salts) {
       var signer = new Sha256Signer();
 
       signer.Digest("Dependencies:");
@@ -72,7 +72,7 @@ namespace Bud {
         signer.Digest(salt);
       }
 
-      return signer;
+      return signer.Finish().HexSignature;
     }
 
     private static Mock<IBuildTask> BareBuildTask(string taskName, IEnumerable<IBuildTask> dependencies) {

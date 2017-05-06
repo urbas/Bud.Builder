@@ -31,7 +31,7 @@ namespace Bud {
     /// long.</exception>
     public Sha256Signer(byte[] buffer = null) {
       if (buffer == null) {
-        this.buffer = new byte[1 << 15];
+        this.buffer = new byte[8192];
       } else {
         if (buffer.Length < 4) {
           throw new ArgumentException("The buffer must have at least 4 bytes.", nameof(buffer));
