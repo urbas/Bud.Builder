@@ -10,7 +10,7 @@ namespace Bud {
   /// </summary>
   public static class Building {
     /// <summary>
-    ///   The default name of the directory where the build execution engine will put intermediate build artifacts and
+    ///   The default name of the directory where the builder will put intermediate build artifacts and
     ///   its meta data.
     /// </summary>
     public const string MetaDirName = ".bud";
@@ -88,7 +88,7 @@ namespace Bud {
       sourceDir = sourceDir != null ? Combine(GetCurrentDirectory(), sourceDir) : GetCurrentDirectory();
       metaDir = metaDir != null ? Combine(GetCurrentDirectory(), metaDir) : Combine(sourceDir, MetaDirName);
       outputDir = outputDir != null ? Combine(GetCurrentDirectory(), outputDir) : Combine(sourceDir, OutputDirName);
-      BuildEngine.Execute(sourceDir, outputDir, metaDir, buildTasks);
+      Builder.Execute(sourceDir, outputDir, metaDir, buildTasks);
     }
   }
 }

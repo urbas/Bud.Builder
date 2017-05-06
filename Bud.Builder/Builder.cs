@@ -9,15 +9,15 @@ using static Bud.FileUtils;
 
 namespace Bud {
   /// <summary>
-  ///   This build engine tries to isolate tasks by creating a temporary output directory for each task.
+  ///   This builder tries to isolate tasks by creating temporary output directories for each task.
   /// </summary>
   /// <remarks>
-  ///   Here's how this engine works in more detail:
+  ///   Here's how the builder works in more detail:
   ///
   ///   <ul>
-  ///     <li>Execute all direct dependencies of task A.</li>
+  ///     <li>First execute all direct dependencies of a task.</li>
   ///
-  ///     <li>Calculate the signature of task A.</li>
+  ///     <li>Afterwards calculate the signature of the task.</li>
   ///
   ///     <li>Check that no other task has the same signature.</li>
   ///
@@ -25,9 +25,10 @@ namespace Bud {
   ///
   ///     <li>If the directory exists, go to the last step, if not, continue with the next step.</li>
   ///
-  ///     <li>Create a temporary directory and ask the task to place its output into this directory.</li>
+  ///     <li>Create a temporary directory and tell the task to put its output into this directory.</li>
   ///
-  ///     <li>If the task finishes successfully, move the temporary output directory to the cache of finished outputs.</li>
+  ///     <li>If the task finishes successfully, move the temporary output directory to the cache of finished
+  ///         outputs.</li>
   ///
   ///     <li>Abort the build if the task threw an exception.</li>
   ///
@@ -36,9 +37,9 @@ namespace Bud {
   ///     <li>Copy the contents of all output directories into the final output directory.</li>
   ///   </ul>
   ///
-  ///   All output files will end up in <see cref="BuildEngine.OutputDir"/>.
+  ///   All output files will end up in <see cref="Builder.OutputDir"/>.
   /// </remarks>
-  public class BuildEngine {
+  public class Builder {
     /// <summary>
     ///   The directory where all sources of the build are located.
     /// </summary>
@@ -50,7 +51,7 @@ namespace Bud {
     public string OutputDir { get; }
 
     /// <summary>
-    ///   The directory where this engine will place its build meta files, caches, and other internal files.
+    ///   The directory where this builder will place its build meta files, caches, and other internal files.
     /// </summary>
     public string MetaDir { get; }
 
@@ -75,7 +76,7 @@ namespace Bud {
     private readonly ConcurrentDictionary<string, IBuildTask> signatureToBuildTask
       = new ConcurrentDictionary<string, IBuildTask>();
 
-    private BuildEngine(string sourceDir, string outputDir, string metaDir) {
+    private Builder(string sourceDir, string outputDir, string metaDir) {
       SourceDir = sourceDir;
       OutputDir = outputDir;
       MetaDir = metaDir;
@@ -89,7 +90,7 @@ namespace Bud {
     /// <param name="outputDir">
     ///   the directory in which all build output will be placed (including build metadata).
     /// </param>
-    /// <param name="metaDir">the directory in which the execution engine will store temporary build artifacts and
+    /// <param name="metaDir">the directory in which the builder will store temporary build artifacts and
     /// build metadata.</param>
     /// <param name="buildTasks">the build tasks to execute.</param>
     /// <returns>an object containing information about the resulting build.</returns>
@@ -103,13 +104,13 @@ namespace Bud {
     ///  <param name="outputDir">
     ///    the directory in which all build output will be placed (including build metadata).
     ///  </param>
-    /// <param name="metaDir">the directory in which the execution engine will store temporary build artifacts and
+    /// <param name="metaDir">the directory in which the builder will store temporary build artifacts and
     /// build metadata.</param>
     /// <param name="buildTasks">the build tasks to execute.</param>
     ///  <returns>an object containing information about the resulting build.</returns>
     ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
     public static void Execute(string sourceDir, string outputDir, string metaDir, IEnumerable<IBuildTask> buildTasks)
-      => new BuildEngine(sourceDir, outputDir, metaDir).Execute(buildTasks);
+      => new Builder(sourceDir, outputDir, metaDir).Execute(buildTasks);
 
     private void Execute(IEnumerable<IBuildTask> buildTasks) {
       CreateMetaOutputDirs();

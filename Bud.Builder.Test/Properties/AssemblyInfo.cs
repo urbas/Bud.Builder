@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("Bud.BuildEngine")]
+[assembly: AssemblyTitle("Bud.Builder.Test")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Bud.BuildEngine")]
+[assembly: AssemblyProduct("Bud.Builder.Test")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly: Guid("5FDD6E0D-C1B4-48E8-96D1-CBB11D0BC774")]
+[assembly: Guid("E8AF31FC-229A-4DCB-B524-FFF1AFD4C0DA")]
 
 // Version information for an assembly consists of the following four values:
 //

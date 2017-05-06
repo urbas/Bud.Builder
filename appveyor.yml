@@ -3,16 +3,16 @@ image: Visual Studio 2017
 before_build:
 - ps: nuget restore
 build:
-  project: Bud.Building.sln
+  project: Bud.Builder.sln
   verbosity: minimal
 before_package:
-  - ps: 'cd Bud.BuildEngine; nuget pack Bud.BuildEngine.csproj'
+  - ps: 'cd Bud.Builder; nuget pack Bud.Builder.csproj'
 artifacts:
-  - path: Bud.BuildEngine/bin/Debug/Bud.BuildEngine.dll
-    name: Bud.BuildEngine.dll
-  - path: Bud.BuildEngine/bin/Debug/Bud.BuildEngine.xml
-    name: Bud.BuildEngine.xml
-  - path: 'Bud.BuildEngine/*.nupkg'
+  - path: Bud.Builder/bin/Debug/Bud.Builder.dll
+    name: Bud.Builder.dll
+  - path: Bud.Builder/bin/Debug/Bud.Builder.xml
+    name: Bud.Builder.xml
+  - path: 'Bud.Builder/*.nupkg'
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'

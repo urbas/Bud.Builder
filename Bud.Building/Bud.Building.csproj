@@ -60,9 +60,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bud.BuildEngine\Bud.BuildEngine.csproj">
+    <ProjectReference Include="..\Bud.Builder\Bud.Builder.csproj">
       <Project>{5fdd6e0d-c1b4-48e8-96d1-cbb11d0bc774}</Project>
-      <Name>Bud.BuildEngine</Name>
+      <Name>Bud.Builder</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

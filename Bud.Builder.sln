@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bud.Building.Test", "Bud.Bu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bud.BuildingTesterApp", "Bud.BuildingTesterApp\Bud.BuildingTesterApp.csproj", "{5830CDCB-F277-48AF-8B2B-E3D31CEF3A5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bud.BuildEngine", "Bud.BuildEngine\Bud.BuildEngine.csproj", "{5FDD6E0D-C1B4-48E8-96D1-CBB11D0BC774}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bud.Builder", "Bud.Builder\Bud.Builder.csproj", "{5FDD6E0D-C1B4-48E8-96D1-CBB11D0BC774}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bud.BuildEngine.Test", "Bud.BuildEngine.Test\Bud.BuildEngine.Test.csproj", "{E8AF31FC-229A-4DCB-B524-FFF1AFD4C0DA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bud.Builder.Test", "Bud.Builder.Test\Bud.Builder.Test.csproj", "{E8AF31FC-229A-4DCB-B524-FFF1AFD4C0DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

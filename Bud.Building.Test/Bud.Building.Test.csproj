@@ -68,9 +68,9 @@
     <Compile Include="TesterAppPath.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bud.BuildEngine\Bud.BuildEngine.csproj">
+    <ProjectReference Include="..\Bud.Builder\Bud.Builder.csproj">
       <Project>{5fdd6e0d-c1b4-48e8-96d1-cbb11d0bc774}</Project>
-      <Name>Bud.BuildEngine</Name>
+      <Name>Bud.Builder</Name>
     </ProjectReference>
     <ProjectReference Include="..\Bud.BuildingTesterApp\Bud.BuildingTesterApp.csproj">
       <Project>{5830CDCB-F277-48AF-8B2B-E3D31CEF3A5F}</Project>

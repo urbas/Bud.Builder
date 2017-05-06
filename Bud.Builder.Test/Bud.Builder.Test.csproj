@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5FDD6E0D-C1B4-48E8-96D1-CBB11D0BC774}</ProjectGuid>
+    <ProjectGuid>{E8AF31FC-229A-4DCB-B524-FFF1AFD4C0DA}</ProjectGuid>
     <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Bud</RootNamespace>
-    <AssemblyName>Bud.BuildEngine</AssemblyName>
+    <AssemblyName>Bud.Builder.Test</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>6</LangVersion>
@@ -23,7 +23,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Bud.BuildEngine.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,8 +37,17 @@
     <Reference Include="Bud.Exec, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\Bud.Exec.2.1.1\lib\net46\Bud.Exec.dll</HintPath>
     </Reference>
-    <Reference Include="Bud.TaskGraph, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Bud.TaskGraph.1.2.0\lib\net46\Bud.TaskGraph.dll</HintPath>
+    <Reference Include="Bud.TmpDir, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Bud.TmpDir.1.0.0\lib\net46\Bud.TmpDir.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc">
+      <HintPath>..\packages\Castle.Core.4.0.0\lib\net45\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Moq, Version=4.7.9.0, Culture=neutral, PublicKeyToken=69f491c39445e920">
+      <HintPath>..\packages\Moq.4.7.9\lib\net45\Moq.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.6.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb">
+      <HintPath>..\packages\NUnit.3.6.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -50,13 +58,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildEngine.cs" />
-    <Compile Include="BuildTaskResult.cs" />
-    <Compile Include="FileUtils.cs" />
-    <Compile Include="HexUtils.cs" />
-    <Compile Include="IBuildTask.cs" />
+    <Compile Include="BuilderTest.cs" />
+    <Compile Include="FilesUtilsTest.cs" />
+    <Compile Include="HexUtilsTest.cs" />
+    <Compile Include="MockBuildTasks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sha256Signer.cs" />
+    <Compile Include="Sha256SignerTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bud.Builder\Bud.Builder.csproj">
+      <Project>{5fdd6e0d-c1b4-48e8-96d1-cbb11d0bc774}</Project>
+      <Name>Bud.Builder</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Bud.BuildingTesterApp\Bud.BuildingTesterApp.csproj">
+      <Project>{5830cdcb-f277-48af-8b2b-e3d31cef3a5f}</Project>
+      <Name>Bud.BuildingTesterApp</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

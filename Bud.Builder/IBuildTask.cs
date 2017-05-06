@@ -17,7 +17,7 @@ namespace Bud {
   /// </para>
   ///
   /// <para>
-  ///   The build execution engine decides based on a task's signature whether to invoke the task or reuse a previous
+  ///   The builder decides based on a task's signature whether to invoke the task or reuse a previous
   ///   output.
   /// </para>
   /// </remarks>
