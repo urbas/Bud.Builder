@@ -38,10 +38,7 @@ namespace Bud {
         Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
         Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fooTaskMock.Object);
 
-        fooTaskMock.Verify(f => f.Execute(It.IsAny<string>(),
-                                          It.IsAny<string>(),
-                                          It.IsAny<ImmutableArray<BuildTaskResult>>()),
-                           Times.Once);
+        VerifyExecutedOnce(fooTaskMock);
       }
     }
 
@@ -62,7 +59,7 @@ namespace Bud {
     }
 
     [Test]
-    public void TestExecute_rebuilds_task_when_signature_changes() {
+    public void TestExecute_rebuilds_task_when_signature_of_dependency_changes() {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
         var barTaskMock = MockBuildTasks.GenerateFile("createBar", "bar", "9001", fooTaskMock.Object);
@@ -72,10 +69,7 @@ namespace Bud {
         var barTaskMock2 = MockBuildTasks.GenerateFile("createBar", "bar", "9001", changedFooTaskMock.Object);
         Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTaskMock2.Object);
 
-        barTaskMock2.Verify(f => f.Execute(It.IsAny<string>(),
-                                           It.IsAny<string>(),
-                                           It.IsAny<ImmutableArray<BuildTaskResult>>()),
-                            Times.Once);
+        VerifyExecutedOnce(barTaskMock2);
       }
     }
 
@@ -91,12 +85,6 @@ namespace Bud {
         VerifyExecutedOnce(fooTaskMock);
       }
     }
-
-    private static void VerifyExecutedOnce(Mock<IBuildTask> fooTaskMock)
-      => fooTaskMock.Verify(f => f.Execute(It.IsAny<string>(),
-                                           It.IsAny<string>(),
-                                           It.IsAny<ImmutableArray<BuildTaskResult>>()),
-                            Times.Once);
 
     [Test]
     public void TestExecute_executes_tasks_in_parallel() {
@@ -191,5 +179,11 @@ namespace Bud {
         }
       }
     }
+
+    private static void VerifyExecutedOnce(Mock<IBuildTask> fooTaskMock)
+      => fooTaskMock.Verify(f => f.Execute(It.IsAny<string>(),
+                                           It.IsAny<string>(),
+                                           It.IsAny<ImmutableArray<BuildTaskResult>>()),
+                            Times.Once);
   }
 }
