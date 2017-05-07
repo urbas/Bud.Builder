@@ -11,7 +11,7 @@ Bud.Builder is a library for defining and executing builds.
 # Example
 
 ```csharp
-using Bud.Builder;
+using Bud;
 
 class Program {
   static void Main(string[] args)
