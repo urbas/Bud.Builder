@@ -47,6 +47,10 @@ namespace Bud {
     /// </summary>
     /// <param name="str">the string to add to the signature by passing it to the hashing algorithm.</param>
     /// <returns>this task signer.</returns>
+    /// <remarks>
+    ///    This method uses UTF-32 because it has fixed character width. This way we can use buffers to digest
+    ///    the string piecewise. Otherwise we would have to allocate new byte arrays for each string.
+    /// </remarks>
     public Sha256Signer Digest(string str) {
       var blockMaxCharCount = buffer.Length >> 2;
       var strLength = str.Length;
