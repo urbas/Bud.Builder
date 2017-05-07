@@ -164,7 +164,7 @@ namespace Bud {
 
     private void GraphNodeAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.
-      var dependenciesResults = GetDependenciesResults(buildTask);
+      var dependenciesResults = GetResults(buildTask.Dependencies);
       var taskSignature = buildTask.Signature(SourceDir, dependenciesResults);
       AssertUniqueSignature(buildTask, taskSignature);
       var buildTaskResult = ExecuteBuildTask(buildTask, taskSignature, dependenciesResults);
@@ -184,8 +184,8 @@ namespace Bud {
       return new BuildTaskResult(taskSignature, taskOutputDir, dependenciesResults);
     }
 
-    private ImmutableArray<BuildTaskResult> GetDependenciesResults(IBuildTask buildTask)
-      => buildTask.Dependencies.Select(task => buildTasksToResults[task]).ToImmutableArray();
+    private ImmutableArray<BuildTaskResult> GetResults(ImmutableArray<IBuildTask> buildTasks)
+      => buildTasks.Select(task => buildTasksToResults[task]).ToImmutableArray();
 
     private void AssertUniqueSignature(IBuildTask buildTask, string taskSignature) {
       var storedTask = signatureToBuildTask.GetOrAdd(taskSignature, buildTask);
