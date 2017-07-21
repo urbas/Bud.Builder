@@ -51,31 +51,5 @@ namespace Bud {
       }
       return ImmutableArray<string>.Empty;
     }
-
-    /// <summary>
-    ///   Recursively copies all files and directories from the source into the target directory.
-    /// </summary>
-    /// <param name="sourceDir">the directory from which to copy files.</param>
-    /// <param name="targetDir">the directory into which to place the files.</param>
-    /// <exception cref="Exception">this exception is thrown if the source directory does not exist.</exception>
-    /// <remarks>
-    ///   <p>This method will overwrite existing files in the target directory.</p>
-    ///   <p>If the target directory doesn't exist, this method will create it first.</p>
-    /// </remarks>
-    public static void CopyTree(string sourceDir, string targetDir) {
-      if (!Directory.Exists(sourceDir)) {
-        throw new Exception($"The directory '{sourceDir}' does not exist.");
-      }
-      Directory.CreateDirectory(targetDir);
-      var sourceDirUri = new Uri($"{sourceDir}/");
-      foreach (var absSourceDir in Directory.EnumerateDirectories(sourceDir, "*", SearchOption.AllDirectories)) {
-        var relSourceDir = sourceDirUri.MakeRelativeUri(new Uri(absSourceDir)).ToString();
-        Directory.CreateDirectory(Path.Combine(targetDir, relSourceDir));
-      }
-      foreach (var absSourceFile in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories)) {
-        var relSourceFile = sourceDirUri.MakeRelativeUri(new Uri(absSourceFile)).ToString();
-        File.Copy(absSourceFile, Path.Combine(targetDir, relSourceFile), overwrite: true);
-      }
-    }
   }
 }

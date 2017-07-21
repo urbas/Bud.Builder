@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using static System.IO.Directory;
 using static System.IO.Path;
+using static Bud.Cp;
 using static Bud.FileUtils;
 
 namespace Bud {
@@ -46,7 +47,7 @@ namespace Bud {
     public string SourceDir { get; }
 
     /// <summary>
-    ///   The directory where all output files should end up.
+    ///   The directory where all output files will end up.
     /// </summary>
     public string OutputDir { get; }
 
@@ -111,7 +112,7 @@ namespace Bud {
       CreateMetaOutputDirs();
       ExecuteBuildTasks(buildTasks);
       AssertNoClashingFiles();
-      CopyToOutputDir();
+      CopyDir(TaskOutputDirs, OutputDir);
     }
 
     private void CreateMetaOutputDirs() {
@@ -147,15 +148,6 @@ namespace Bud {
           }
           relativeOutputFileToBuildTask.Add(relativeOutputFile, signatureAndBuildTask.Value);
         }
-      }
-    }
-
-    private void CopyToOutputDir() {
-      if (Exists(OutputDir)) {
-        Delete(OutputDir, true);
-      }
-      foreach (var taskOutputDir in TaskOutputDirs) {
-        CopyTree(taskOutputDir, OutputDir);
       }
     }
 
