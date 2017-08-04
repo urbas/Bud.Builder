@@ -25,7 +25,7 @@ namespace Bud {
     /// <summary>
     ///   This method does the bulk of the task's work. It produces the task's output.
     /// </summary>
-    /// <param name="sourceDir">the source directory.</param>
+    /// <param name="sourceDir">the directory from which the build task should draw its sources.</param>
     /// <param name="outputDir">the directory where this task should place all its output files.</param>
     /// <param name="dependencyResults">
     ///   this array contains the outcomes of tasks on which this task depends.
