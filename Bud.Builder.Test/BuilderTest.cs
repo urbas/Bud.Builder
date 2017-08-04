@@ -31,6 +31,20 @@ namespace Bud {
     }
 
     [Test]
+    public void TestExecute_dependency_results_reference_build_tasks() {
+      using (var tmpDir = new TmpDir()) {
+        var fooTask = MockBuildTasks.NoOp("foo").Object;
+        var barTask = MockBuildTasks.NoOp("bar", fooTask)
+                                    .WithExecuteAction((sourceDir, outputDir, dependencyResults) => {
+                                      Assert.AreEqual(new []{fooTask}, 
+                                                      dependencyResults.Select(result => result.BuildTask));
+                                    }).Object;
+
+        Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), barTask);
+      }
+    }
+
+    [Test]
     public void TestExecute_executes_the_same_tasks_once() {
       using (var tmpDir = new TmpDir()) {
         var fooTaskMock = MockBuildTasks.GenerateFile("createFoo", "foo", "42");
@@ -101,7 +115,8 @@ namespace Bud {
           countdownLatch.Wait();
         });
 
-        Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), buildTask1Mock.Object, buildTask2Mock.Object);
+        Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), buildTask1Mock.Object,
+                        buildTask2Mock.Object);
       }
     }
 
@@ -150,9 +165,8 @@ namespace Bud {
           // ignored
         }
         var fullTask = MockBuildTasks.NoOp("task1")
-                                     .WithExecuteAction((sourceDir, outputDir, deps) => {
-                                       File.WriteAllText(Path.Combine(outputDir, "bar"), "9001");
-                                     });
+                                     .WithExecuteAction((sourceDir, outputDir, deps) => 
+                                                          File.WriteAllText(Path.Combine(outputDir, "bar"), "9001"));
         Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), fullTask.Object);
 
         FileAssert.AreEqual(tmpDir.CreateFile("9001"), tmpDir.CreatePath("out", "bar"));

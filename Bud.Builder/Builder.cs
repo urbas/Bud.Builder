@@ -173,7 +173,7 @@ namespace Bud {
         buildTask.Execute(SourceDir, partialTaskOutputDir, dependenciesResults);
         Move(partialTaskOutputDir, taskOutputDir);
       }
-      return new BuildTaskResult(taskSignature, taskOutputDir, dependenciesResults);
+      return new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
     }
 
     private ImmutableArray<BuildTaskResult> GetResults(ImmutableArray<IBuildTask> buildTasks)

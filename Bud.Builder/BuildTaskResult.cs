@@ -12,6 +12,11 @@ namespace Bud {
   /// </summary>
   public class BuildTaskResult {
     /// <summary>
+    ///   The build task that produced this result.
+    /// </summary>
+    public IBuildTask BuildTask { get; }
+
+    /// <summary>
     ///   The signature of the task tha produced the output.
     /// </summary>
     public string TaskSignature { get; }
@@ -29,8 +34,9 @@ namespace Bud {
     /// <summary>
     ///   Initializes an instance of the build task result.
     /// </summary>
-    public BuildTaskResult(string taskSignature, string taskOutputDir,
+    public BuildTaskResult(IBuildTask buildTask, string taskSignature, string taskOutputDir, 
                            ImmutableArray<BuildTaskResult> dependenciesResults) {
+      BuildTask = buildTask;
       TaskSignature = taskSignature;
       TaskOutputDir = taskOutputDir;
       DependenciesResults = dependenciesResults;
