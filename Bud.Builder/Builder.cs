@@ -57,14 +57,14 @@ namespace Bud {
     public string MetaDir { get; }
 
     /// <summary>
-    ///   The directory inside <see cref="MetaDir"/> where finished output directories are located.
+    ///   The directory inside <see cref="MetaDir"/> where finished output directories of each build task are located.
     /// </summary>
-    public string DoneOutputsDir { get; }
+    public string PerTaskOutputDir { get; }
 
     /// <summary>
-    ///   The directory inside <see cref="MetaDir"/> where unfinished output directories are located.
+    ///   The directory inside <see cref="MetaDir"/> where unfinished output directories of each build task are located.
     /// </summary>
-    public string PartialOutputsDir { get; }
+    public string PerTaskPartialOutputDir { get; }
 
     private readonly ConcurrentDictionary<IBuildTask, BuildTaskResult> buildTasksToResults
       = new ConcurrentDictionary<IBuildTask, BuildTaskResult>(new Dictionary<IBuildTask, BuildTaskResult>());
@@ -76,8 +76,8 @@ namespace Bud {
       SourceDir = sourceDir;
       OutputDir = outputDir;
       MetaDir = metaDir;
-      PartialOutputsDir = Combine(MetaDir, ".partial");
-      DoneOutputsDir = Combine(MetaDir, ".done");
+      PerTaskPartialOutputDir = Combine(MetaDir, ".partial");
+      PerTaskOutputDir = Combine(MetaDir, ".done");
     }
 
     ///  <summary>
@@ -116,11 +116,11 @@ namespace Bud {
     }
 
     private void CreateMetaOutputDirs() {
-      CreateDirectory(DoneOutputsDir);
-      if (Exists(PartialOutputsDir)) {
-        Delete(PartialOutputsDir, recursive: true);
+      CreateDirectory(PerTaskOutputDir);
+      if (Exists(PerTaskPartialOutputDir)) {
+        Delete(PerTaskPartialOutputDir, recursive: true);
       }
-      CreateDirectory(PartialOutputsDir);
+      CreateDirectory(PerTaskPartialOutputDir);
     }
 
     private void ExecuteBuildTasks(IEnumerable<IBuildTask> buildTasks) {
@@ -138,7 +138,7 @@ namespace Bud {
     private void AssertNoClashingFiles() {
       var relativeOutputFileToBuildTask = new Dictionary<string, IBuildTask>();
       foreach (var signatureAndBuildTask in signatureToBuildTask) {
-        var relativeOutputFiles = FindFilesRelative(Combine(DoneOutputsDir, signatureAndBuildTask.Key));
+        var relativeOutputFiles = FindFilesRelative(Combine(PerTaskOutputDir, signatureAndBuildTask.Key));
 
         foreach (var relativeOutputFile in relativeOutputFiles) {
           IBuildTask otherTask;
@@ -152,7 +152,7 @@ namespace Bud {
     }
 
     private IEnumerable<string> TaskOutputDirs
-      => signatureToBuildTask.Keys.Select(sig => Combine(DoneOutputsDir, sig));
+      => signatureToBuildTask.Keys.Select(sig => Combine(PerTaskOutputDir, sig));
 
     private void GraphNodeAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.
@@ -166,9 +166,9 @@ namespace Bud {
     private BuildTaskResult ExecuteBuildTask(IBuildTask buildTask,
                                              string taskSignature,
                                              ImmutableArray<BuildTaskResult> dependenciesResults) {
-      var taskOutputDir = Combine(DoneOutputsDir, taskSignature);
+      var taskOutputDir = Combine(PerTaskOutputDir, taskSignature);
       if (!Exists(taskOutputDir)) {
-        var partialTaskOutputDir = Combine(PartialOutputsDir, taskSignature);
+        var partialTaskOutputDir = Combine(PerTaskPartialOutputDir, taskSignature);
         CreateDirectory(partialTaskOutputDir);
         buildTask.Execute(SourceDir, partialTaskOutputDir, dependenciesResults);
         Move(partialTaskOutputDir, taskOutputDir);
