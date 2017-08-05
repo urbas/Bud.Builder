@@ -14,7 +14,15 @@ Bud.Builder is a library for defining and executing builds.
 using Bud;
 
 class Program {
-  static void Main(string[] args)
-    => Builder.Execute("srcDir", "outDir", ".bud", task1, task2, ...);
+  static void Main(string[] args) {
+    var task1 = new FooBuildTask("");
+    var task2 = new BarBuildTask("", dependsOn: task1);
+    
+    Builder.Execute("srcDir", "outDir", ".bud", task1);
+  }
 }
+
+// Your build tasks have to implement the IBuildTask interface. 
+class FooBuildTask : IBuildTask { ... }
+class BarBuildTask : IBuildTask { ... }
 ```
