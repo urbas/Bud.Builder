@@ -59,7 +59,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuilderTest.cs" />
-    <Compile Include="FilesUtilsTest.cs" />
     <Compile Include="HexUtilsTest.cs" />
     <Compile Include="MockBuildTasks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

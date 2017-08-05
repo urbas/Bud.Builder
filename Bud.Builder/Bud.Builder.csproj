@@ -55,7 +55,6 @@
   <ItemGroup>
     <Compile Include="Builder.cs" />
     <Compile Include="BuildTaskResult.cs" />
-    <Compile Include="FileUtils.cs" />
     <Compile Include="HexUtils.cs" />
     <Compile Include="IBuildTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
