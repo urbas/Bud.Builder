@@ -45,10 +45,23 @@ namespace Bud {
     /// <param name="sourceDir">the source directory.</param>
     /// <param name="dependencyResults">this array contains the outcomes of tasks on which this task depends.</param>
     /// <returns>
-    ///   A hex string or a URL- and filename-safe Base64 string (i.e.: base64url). This signature should be a
-    ///   cryptographically strong digest of the tasks inputs such as source files, signatures of dependncies,
-    ///   environment variables, the task's algorithm, and other factors that affect the task's output.
+    ///   A string that can be a filename and is also URL-safe (for example, it could be a hex string, or a Base64 URL
+    ///   string).
     /// </returns>
+    /// <remarks>
+    /// This signature should be a cryptographically strong digest (e.g.: SHA256) of the task's inputs and other factors
+    /// that affect the task's output. Some examples of potential digest inputs:
+    /// 
+    /// <ul>
+    ///   <li>source files,</li>
+    ///   <li>signatures of the task's dependncies,</li>
+    ///   <li>environment variables,</li>
+    ///   <li>version of the task's build algorithm,</li>
+    /// </ul>
+    /// 
+    /// Bud.Builder assumes that the output of the task will be the same exactly when the signature of the task is the
+    /// same.
+    /// </remarks>
     string Signature(string sourceDir, ImmutableArray<BuildTaskResult> dependencyResults);
   }
 }

@@ -16,7 +16,7 @@ namespace Bud {
     public IBuildTask BuildTask2 { get; }
     
     /// <summary>
-    /// The signature that the two build tasks are sharing.
+    /// The signature the two build tasks are sharing.
     /// </summary>
     public string ClashingSignature { get; }
 

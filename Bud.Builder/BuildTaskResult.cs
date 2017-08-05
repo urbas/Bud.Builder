@@ -17,7 +17,7 @@ namespace Bud {
     public IBuildTask BuildTask { get; }
 
     /// <summary>
-    ///   The signature of the task tha produced the output.
+    ///   The signature of the task that produced the output.
     /// </summary>
     public string TaskSignature { get; }
 
