@@ -55,10 +55,8 @@
   <ItemGroup>
     <Compile Include="Builder.cs" />
     <Compile Include="BuildTaskResult.cs" />
-    <Compile Include="HexUtils.cs" />
     <Compile Include="IBuildTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sha256Signer.cs" />
     <Compile Include="BuildTaskClashException.cs" />
   </ItemGroup>
   <ItemGroup>
