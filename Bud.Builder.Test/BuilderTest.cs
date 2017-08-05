@@ -126,7 +126,7 @@ namespace Bud {
         var task1Mock = MockBuildTasks.NoOp("task1").WithSignature("foo");
         var task2Mock = MockBuildTasks.NoOp("task2", task1Mock.Object).WithSignature("foo");
 
-        var exception = Assert.Throws<Exception>(() => {
+        var exception = Assert.Throws<BuildTaskClashException>(() => {
           Builder.Execute(tmpDir.Path, tmpDir.CreateDir("out"), tmpDir.CreateDir(".bud"), task2Mock.Object);
         });
 

@@ -5,8 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using static System.IO.Directory;
 using static System.IO.Path;
-using static Bud.Cp;
-using static Bud.FileUtils;
 
 namespace Bud {
   /// <summary>
@@ -57,12 +55,14 @@ namespace Bud {
     public string MetaDir { get; }
 
     /// <summary>
-    ///   The directory inside <see cref="MetaDir"/> where finished output directories of each build task are located.
+    ///   The directory inside <see cref="MetaDir"/> where finished output directories of each build task are 
+    ///   located.
     /// </summary>
     public string PerTaskOutputDir { get; }
 
     /// <summary>
-    ///   The directory inside <see cref="MetaDir"/> where unfinished output directories of each build task are located.
+    ///   The directory inside <see cref="MetaDir"/> where unfinished output directories of each build task are
+    ///   located.
     /// </summary>
     public string PerTaskPartialOutputDir { get; }
 
@@ -105,14 +105,14 @@ namespace Bud {
     /// <param name="buildTasks">the build tasks to execute.</param>
     ///  <returns>an object containing information about the resulting build.</returns>
     ///  <exception cref="Exception">this exception is thrown if the build fails for any reason.</exception>
-    public static void Execute(string sourceDir, string outputDir, string metaDir, IEnumerable<IBuildTask> buildTasks)
+    public static void Execute(string sourceDir, string outputDir, string metaDir,
+                               IEnumerable<IBuildTask> buildTasks)
       => new Builder(sourceDir, outputDir, metaDir).Execute(buildTasks);
 
     private void Execute(IEnumerable<IBuildTask> buildTasks) {
       CreateMetaOutputDirs();
       ExecuteBuildTasks(buildTasks);
-      AssertNoClashingFiles();
-      CopyDir(TaskOutputDirs, OutputDir);
+      AggregateOutputDir();
     }
 
     private void CreateMetaOutputDirs() {
@@ -131,28 +131,20 @@ namespace Bud {
                               task => () => GraphNodeAction(task))
                  .Run();
       } catch (AggregateException aggregateException) {
-        throw aggregateException.InnerExceptions[0];
+        ThrowInnerExceptions(aggregateException);
       }
     }
 
-    private void AssertNoClashingFiles() {
-      var relativeOutputFileToBuildTask = new Dictionary<string, IBuildTask>();
-      foreach (var signatureAndBuildTask in signatureToBuildTask) {
-        var relativeOutputFiles = FindFilesRelative(Combine(PerTaskOutputDir, signatureAndBuildTask.Key));
-
-        foreach (var relativeOutputFile in relativeOutputFiles) {
-          IBuildTask otherTask;
-          if (relativeOutputFileToBuildTask.TryGetValue(relativeOutputFile, out otherTask)) {
-            throw new Exception($"Tasks '{otherTask.Name}' and '{signatureAndBuildTask.Value.Name}' are clashing. " +
-                                $"They produced the same file '{relativeOutputFile}'.");
-          }
-          relativeOutputFileToBuildTask.Add(relativeOutputFile, signatureAndBuildTask.Value);
-        }
+    private void AggregateOutputDir() {
+      try {
+        Cp.CopyDir(TaskOutputDirs, OutputDir);
+      } catch (CopyClashException exception) {
+        var buildTask1 = signatureToBuildTask[GetFileName(GetDirectoryName(exception.SourceDir1.AbsolutePath))];
+        var buildTask2 = signatureToBuildTask[GetFileName(GetDirectoryName(exception.SourceDir2.AbsolutePath))];
+        throw new Exception($"Tasks '{buildTask1.Name}' and '{buildTask2.Name}' are clashing. " +
+                            $"They produced the same file '{exception.FileRelPath}'.");
       }
     }
-
-    private IEnumerable<string> TaskOutputDirs
-      => signatureToBuildTask.Keys.Select(sig => Combine(PerTaskOutputDir, sig));
 
     private void GraphNodeAction(IBuildTask buildTask) {
       // At this point all dependencies will have been evaluated.
@@ -176,15 +168,25 @@ namespace Bud {
       return new BuildTaskResult(buildTask, taskSignature, taskOutputDir, dependenciesResults);
     }
 
+    private IEnumerable<string> TaskOutputDirs
+      => signatureToBuildTask.Keys.Select(sig => Combine(PerTaskOutputDir, sig));
+
     private ImmutableArray<BuildTaskResult> GetResults(ImmutableArray<IBuildTask> buildTasks)
       => buildTasks.Select(task => buildTasksToResults[task]).ToImmutableArray();
 
     private void AssertUniqueSignature(IBuildTask buildTask, string taskSignature) {
       var storedTask = signatureToBuildTask.GetOrAdd(taskSignature, buildTask);
       if (storedTask != buildTask) {
-        throw new Exception($"Tasks '{storedTask.Name}' and '{buildTask.Name}' are clashing. " +
-                            $"They have the same signature '{taskSignature}'.");
+        throw new BuildTaskClashException(storedTask, buildTask, taskSignature);
       }
+    }
+
+    private static void ThrowInnerExceptions(AggregateException aggregateException) {
+      var topInnerException = aggregateException.InnerExceptions[0];
+      if (topInnerException is BuildTaskClashException) {
+        throw topInnerException;
+      }
+      throw aggregateException;
     }
   }
 }
