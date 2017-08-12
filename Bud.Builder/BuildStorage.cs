@@ -25,12 +25,8 @@ namespace Bud {
                                .Select(path => new Uri(path))
                                .ToList()
                     : new List<Uri>();
-      if (files.Count > 0 && dir != TargetDir) {
-        var signature = Encoding.UTF8.GetBytes(Path.GetFileName(Path.GetDirectoryName(dir.AbsolutePath)));
-        foreach (var file in files) {
-          sourceFileToSignature[file] = signature;
-          sourceFileToDir[file] = dir;
-        }
+      if (files.Count > 0 && IsSourceDir(dir)) {
+        MemorizeSourceFileSignatures(dir, files);
       }
       return files;
     }
@@ -40,8 +36,6 @@ namespace Bud {
            ? Directory.EnumerateDirectories(dir.AbsolutePath, "*", AllDirectories).Select(path => new Uri(path))
            : Enumerable.Empty<Uri>();
 
-    public void CopyFile(Uri sourceFile, Uri targetFile)
-      => File.Copy(sourceFile.AbsolutePath, targetFile.AbsolutePath, overwrite: true);
 
     public byte[] GetSignature(Uri file) {
       byte[] signature;
@@ -54,7 +48,11 @@ namespace Bud {
 
     public void DeleteFile(Uri file) => File.Delete(file.AbsolutePath);
 
+    public void CopyFile(Uri sourceFile, Uri targetFile)
+      => File.Copy(sourceFile.AbsolutePath, targetFile.AbsolutePath, overwrite: true);
+
     public void DeleteDirectory(Uri dir) => Directory.Delete(dir.AbsolutePath, recursive: true);
+
 
     private static Uri ToDirUri(string targetDir) => new Uri(targetDir.EndsWith("/") ? targetDir : targetDir + "/");
 
@@ -67,6 +65,16 @@ namespace Bud {
         targetSignatures[fileRelPath] = signature;
       }
       return targetSignatures;
+    }
+    
+    private bool IsSourceDir(Uri dir) => dir != TargetDir;
+    
+    private void MemorizeSourceFileSignatures(Uri dir, List<Uri> files) {
+      var signature = Encoding.UTF8.GetBytes(Path.GetFileName(Path.GetDirectoryName(dir.AbsolutePath)));
+      foreach (var file in files) {
+        sourceFileToSignature[file] = signature;
+        sourceFileToDir[file] = dir;
+      }
     }
   }
 }
