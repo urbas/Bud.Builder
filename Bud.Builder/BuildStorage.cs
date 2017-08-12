@@ -6,13 +6,13 @@ using System.Text;
 using static System.IO.SearchOption;
 
 namespace Bud {
-  internal class BuildTaskOutputStorage : IStorage {
+  internal class BuildStorage : IStorage {
     private Uri TargetDir { get; }
     private Dictionary<Uri, byte[]> TargetSignatures { get; }
     private readonly Dictionary<Uri, byte[]> sourceFileToSignature = new Dictionary<Uri, byte[]>();
     private readonly Dictionary<Uri, Uri> sourceFileToDir = new Dictionary<Uri, Uri>();
 
-    public BuildTaskOutputStorage(string targetDir, Dictionary<Uri, byte[]> targetSignatures) {
+    public BuildStorage(string targetDir, Dictionary<Uri, byte[]> targetSignatures) {
       TargetDir = ToDirUri(targetDir);
       TargetSignatures = targetSignatures;
     }

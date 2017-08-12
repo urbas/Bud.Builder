@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Builder.cs" />
-    <Compile Include="BuildTaskOutputStorage.cs" />
+    <Compile Include="BuildStorage.cs" />
     <Compile Include="BuildTaskResult.cs" />
     <Compile Include="IBuildTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

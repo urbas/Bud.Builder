@@ -10,7 +10,7 @@ namespace Bud {
     private TmpDir dir;
     private string sourceFile1;
     private string targetDir;
-    private BuildTaskOutputStorage storage;
+    private BuildStorage storage;
 
     [SetUp]
     public void SetUp() {
@@ -19,7 +19,7 @@ namespace Bud {
       sourceDir2 = dir.CreateDir("sourceDir2");
       sourceFile1 = dir.CreateFile("foo", "sourceDir1", "file1");
       targetDir = dir.CreatePath("target");
-      storage = new BuildTaskOutputStorage(targetDir, new Dictionary<Uri, byte[]>());
+      storage = new BuildStorage(targetDir, new Dictionary<Uri, byte[]>());
     }
 
     [TearDown]
@@ -56,8 +56,8 @@ namespace Bud {
       FileAssert.AreEqual(sourceFile2, dir.CreatePath("target", "file1"));
     }
 
-    private BuildTaskOutputStorage NextStorage() {
-      storage = new BuildTaskOutputStorage(targetDir, storage.CalculateTargetSignatures());
+    private BuildStorage NextStorage() {
+      storage = new BuildStorage(targetDir, storage.CalculateTargetSignatures());
       return storage;
     }
 
