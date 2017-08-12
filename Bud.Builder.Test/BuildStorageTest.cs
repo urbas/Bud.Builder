@@ -56,11 +56,6 @@ namespace Bud {
       FileAssert.AreEqual(sourceFile2, dir.CreatePath("target", "file1"));
     }
 
-    private BuildStorage NextStorage() {
-      storage = new BuildStorage(targetDir, storage.CalculateTargetSignatures());
-      return storage;
-    }
-
     [Test]
     public void Test_delete_target_file() {
       CopyDir(sourceDir1, targetDir, NextStorage());
@@ -78,6 +73,11 @@ namespace Bud {
       
       CopyDir(sourceDir2, targetDir, NextStorage());
       DirectoryAssert.DoesNotExist(dir.CreatePath("target", "subdir1"));
+    }
+
+    private BuildStorage NextStorage() {
+      storage = new BuildStorage(targetDir, storage.CalculateTargetSignatures());
+      return storage;
     }
   }
 }

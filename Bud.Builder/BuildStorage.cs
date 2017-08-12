@@ -40,9 +40,8 @@ namespace Bud {
            ? Directory.EnumerateDirectories(dir.AbsolutePath, "*", AllDirectories).Select(path => new Uri(path))
            : Enumerable.Empty<Uri>();
 
-    public void CopyFile(Uri sourceFile, Uri targetFile) {
-      File.Copy(sourceFile.AbsolutePath, targetFile.AbsolutePath, overwrite: true);
-    }
+    public void CopyFile(Uri sourceFile, Uri targetFile)
+      => File.Copy(sourceFile.AbsolutePath, targetFile.AbsolutePath, overwrite: true);
 
     public byte[] GetSignature(Uri file) {
       byte[] signature;
