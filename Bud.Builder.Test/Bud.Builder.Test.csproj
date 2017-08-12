@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuilderTest.cs" />
-    <Compile Include="BuildTaskOutputStorageTest.cs" />
+    <Compile Include="BuildStorageTest.cs" />
     <Compile Include="HexUtils.cs" />
     <Compile Include="HexUtilsTest.cs" />
     <Compile Include="MockBuildTasks.cs" />

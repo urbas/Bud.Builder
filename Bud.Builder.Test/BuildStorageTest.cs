@@ -4,7 +4,7 @@ using NUnit.Framework;
 using static Bud.Cp;
 
 namespace Bud {
-  public class BuildTaskOutputStorageTest {
+  public class BuildStorageTest {
     private string sourceDir1;
     private string sourceDir2;
     private TmpDir dir;
